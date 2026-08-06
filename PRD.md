@@ -100,6 +100,8 @@
 - 员工登记工时时，只显示「自己参与的 + 未结束的」项目
 - 项目经理可查看所负责项目的工时统计
 - 管理员可查看全部项目的工时统计
+<img width="2784" height="734" alt="image" src="https://github.com/user-attachments/assets/f2ffc96b-b29a-40d5-8e1a-320085b94e29" />
+
 
 ### 2.4 工时管理
 
