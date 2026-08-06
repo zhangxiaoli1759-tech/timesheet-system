@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工时管理系统 · 产品设计文档</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f7f8fa;
+    --bg-card: #ffffff;
+    --text: #1a1a2e;
+    --text-2: #5c5c6b;
+    --text-3: #9a9aa8;
+    --border: #e8e8ef;
+    --border-strong: #d0d0db;
+    --blue: #185FA5;
+    --blue-bg: #E6F1FB;
+    --purple: #534AB7;
+    --purple-bg: #EEEDFE;
+    --teal: #0F6E56;
+    --teal-bg: #E1F5EE;
+    --amber: #854F0B;
+    --amber-bg: #FAEEDA;
+    --red: #A32D2D;
+    --red-bg: #FCEBEB;
+    --green: #3B6D11;
+    --green-bg: #EAF3DE;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg-soft);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+  }
+  .wrap { max-width: 920px; margin: 0 auto; padding: 40px 32px 80px; }
+
+  /* 封面 */
+  .cover {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 16px;
+    padding: 48px 40px;
+    color: #fff;
+    margin-bottom: 40px;
+  }
+  .cover h1 { font-size: 28px; font-weight: 600; margin-bottom: 12px; letter-spacing: 0.5px; }
+  .cover .sub { font-size: 15px; opacity: 0.7; margin-bottom: 24px; }
+  .cover .meta { display: flex; gap: 32px; font-size: 13px; opacity: 0.6; }
+  .cover .meta span { display: flex; align-items: center; gap: 6px; }
+  .cover .tag {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    background: rgba(255,255,255,0.15); font-size: 12px; margin-right: 8px;
+  }
+
+  /* 目录 */
+  .toc {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px 28px; margin-bottom: 40px;
+  }
+  .toc h3 { font-size: 14px; color: var(--text-2); margin-bottom: 12px; font-weight: 500; }
+  .toc ol { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; }
+  .toc li { font-size: 14px; }
+  .toc a { color: var(--blue); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .num { color: var(--text-3); margin-right: 8px; }
+
+  /* 章节 */
+  section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 32px; margin-bottom: 24px; }
+  section h2 {
+    font-size: 20px; font-weight: 600; margin-bottom: 6px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  section h2 .icon {
+    width: 28px; height: 28px; border-radius: 8px; display: flex;
+    align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff;
+  }
+  section .lead { font-size: 14px; color: var(--text-2); margin-bottom: 24px; }
+  section h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; color: var(--text); }
+  section h4 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; color: var(--text-2); }
+  section p { margin-bottom: 12px; }
+  section ul, section ol { margin: 8px 0 16px 20px; }
+  section li { margin-bottom: 4px; }
+
+  /* 表格 */
+  .tbl-wrap { overflow-x: auto; margin: 12px 0 20px; border-radius: 8px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: var(--bg-soft); text-align: left; padding: 10px 14px; font-weight: 600; color: var(--text-2); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td code, p code { background: var(--bg-soft); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: "SF Mono", "Fira Code", monospace; color: var(--purple); }
+
+  /* 标签 */
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+  .b-blue { background: var(--blue-bg); color: var(--blue); }
+  .b-purple { background: var(--purple-bg); color: var(--purple); }
+  .b-teal { background: var(--teal-bg); color: var(--teal); }
+  .b-amber { background: var(--amber-bg); color: var(--amber); }
+  .b-red { background: var(--red-bg); color: var(--red); }
+  .b-green { background: var(--green-bg); color: var(--green); }
+  .b-gray { background: #f1f1f5; color: #6a6a78; }
+
+  /* 功能卡片 */
+  .feat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin: 16px 0; }
+  .feat-card { border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .feat-card h4 { margin: 0 0 8px; font-size: 14px; }
+  .feat-card p { font-size: 13px; color: var(--text-2); margin: 0; }
+
+  /* 规则块 */
+  .rule { border-left: 3px solid var(--amber); background: var(--amber-bg); padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; }
+  .rule.blue { border-color: var(--blue); background: var(--blue-bg); }
+  .rule.red { border-color: var(--red); background: var(--red-bg); }
+  .rule.green { border-color: var(--green); background: var(--green-bg); }
+
+  /* API */
+  .api { border: 1px solid var(--border); border-radius: 8px; margin: 10px 0; overflow: hidden; }
+  .api-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-soft); font-size: 13px; }
+  .api-method { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; }
+  .m-get { background: var(--teal-bg); color: var(--teal); }
+  .m-post { background: var(--blue-bg); color: var(--blue); }
+  .m-put { background: var(--amber-bg); color: var(--amber); }
+  .m-del { background: var(--red-bg); color: var(--red); }
+  .api-path { font-family: "SF Mono", monospace; font-size: 13px; }
+  .api-body { padding: 10px 14px; font-size: 13px; }
+  .api-body pre { background: #f5f5f8; padding: 10px; border-radius: 6px; font-size: 12px; overflow-x: auto; font-family: "SF Mono", monospace; }
+
+  .footer { text-align: center; padding: 40px 0 0; font-size: 13px; color: var(--text-3); }
+  .highlight { background: #fffbe6; padding: 1px 4px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 封面 -->
+  <div class="cover">
+    <div style="margin-bottom:16px;">
+      <span class="tag">内部系统</span>
+      <span class="tag">B端管理后台</span>
+      <span class="tag">RBAC权限</span>
+    </div>
+    <h1>工时管理系统</h1>
+    <p class="sub">公司内部工时登记与统计管理系统 · 产品设计文档（PRD）</p>
+    <div class="meta">
+      <span>版本 V1.0</span>
+      <span>日期 2026-08-05</span>
+      <span>状态 初稿</span>
+    </div>
+  </div>
+
+  <!-- 目录 -->
+  <div class="toc">
+    <h3>目录</h3>
+    <ol>
+      <li><span class="num">01</span><a href="#s1">系统概述</a></li>
+      <li><span class="num">02</span><a href="#s2">功能模块设计</a></li>
+      <li><span class="num">03</span><a href="#s3">角色权限矩阵</a></li>
+      <li><span class="num">04</span><a href="#s4">数据模型设计</a></li>
+      <li><span class="num">05</span><a href="#s5">接口设计（API）</a></li>
+      <li><span class="num">06</span><a href="#s6">核心业务规则</a></li>
+      <li><span class="num">07</span><a href="#s7">非功能性需求</a></li>
+      <li><span class="num">08</span><a href="#s8">页面清单与说明</a></li>
+    </ol>
+  </div>
+
+  <!-- 1. 系统概述 -->
+  <section id="s1">
+    <h2><span class="icon" style="background:var(--blue);">01</span>系统概述</h2>
+    <p class="lead">面向公司内部的工时登记与统计管理系统，解决员工日常工时填报、项目工时归集、人员与权限管理的需求。</p>
+
+    <h3>设计目标</h3>
+    <ul>
+      <li><strong>规范化工时填报</strong>：员工每天按项目登记工时，系统自动校验单日总工时不超过 12 小时</li>
+      <li><strong>项目维度的工时归集</strong>：工时与项目关联，支持按项目、按人员、按时间维度统计汇总</li>
+      <li><strong>灵活的权限控制</strong>：基于 RBAC 模型，自定义角色 + 菜单级权限分配，不同角色看到不同功能菜单</li>
+      <li><strong>账号生命周期管理</strong>：账号支持启用/停用，停用后无法登录系统</li>
+    </ul>
+
+    <h3>系统边界</h3>
+    <div class="rule blue">
+      <strong>本期范围（V1.0）：</strong>用户管理、角色管理、项目管理、工时管理四大模块，含登录认证与菜单权限。<br>
+      <strong>不在本期范围：</strong>移动端、工时审批流、考勤打卡对接、薪酬计算、LDAP/SSO 集成（预留扩展）。
+    </div>
+  </section>
+
+  <!-- 2. 功能模块设计 -->
+  <section id="s2">
+    <h2><span class="icon" style="background:var(--purple);">02</span>功能模块设计</h2>
+    <p class="lead">系统共四大功能模块，下文逐一展开详细设计。</p>
+
+    <!-- 2.1 用户管理 -->
+    <h3>2.1 用户管理 <span class="badge b-blue">身份认证</span></h3>
+    <p>管理系统中所有可登录的用户账号，包括账号信息维护、密码管理、账号启停控制。</p>
+
+    <h4>功能点清单</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:30px;">#</th><th>功能点</th><th>说明</th><th style="width:80px;">操作角色</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>用户列表</td><td>分页展示所有用户，支持按姓名/账号/状态搜索筛选</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+          <tr><td>2</td><td>新增用户</td><td>填写账号、姓名、手机号、初始密码，创建后默认「启用」状态</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+          <tr><td>3</td><td>编辑用户</td><td>修改基本信息（姓名、手机号），不可修改账号（唯一标识）</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+          <tr><td>4</td><td>账号启用/停用</td><td>停用后该账号无法登录系统；启用后恢复登录。已登录的停用账号，下次请求自动登出</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+          <tr><td>5</td><td>重置密码</td><td>管理员重置用户密码为默认值，用户首次登录后可自行修改</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+          <tr><td>6</td><td>修改密码</td><td>用户自行修改密码，需校验原密码</td><td><span class="badge b-gray">所有用户</span></td></tr>
+          <tr><td>7</td><td>登录认证</td><td>账号 + 密码登录，校验账号存在性、状态为启用、密码正确性</td><td><span class="badge b-gray">公开</span></td></tr>
+          <tr><td>8</td><td>分配角色</td><td>为用户分配一个或多个角色，角色决定可见菜单</td><td><span class="badge b-purple">系统管理员</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule">
+      <strong>密码安全策略：</strong>密码存储使用 BCrypt 加密（不可逆），不存明文。初始密码建议 8 位以上，包含字母+数字。连续登录失败 5 次锁定账号 30 分钟（V1.1 可选）。
+    </div>
+
+    <!-- 2.2 角色管理 -->
+    <h3>2.2 角色管理 <span class="badge b-purple">权限控制</span></h3>
+    <p>采用 RBAC（基于角色的访问控制）模型：角色是权限的集合，用户通过分配角色获得权限。权限粒度控制在<strong>菜单级别</strong>。</p>
+
+    <h4>功能点清单</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:30px;">#</th><th>功能点</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>角色列表</td><td>展示所有自定义角色，含角色名、描述、关联用户数</td></tr>
+          <tr><td>2</td><td>新增角色</td><td>自定义角色名称和描述</td></tr>
+          <tr><td>3</td><td>编辑角色</td><td>修改角色名称、描述</td></tr>
+          <tr><td>4</td><td>删除角色</td><td>已被分配给用户的角色不可删除，需先解除关联</td></tr>
+          <tr><td>5</td><td>菜单权限配置</td><td>树形勾选菜单，为角色分配可访问的菜单。支持父子菜单联动（选父菜单自动选子菜单，取消子菜单自动取消父菜单）</td></tr>
+          <tr><td>6</td><td>角色分配用户</td><td>在角色详情中查看/添加/移除关联用户</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h4>预置角色</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th>角色名</th><th>说明</th><th>可见菜单</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge b-purple">系统管理员</span></td><td>系统最高权限，管理所有配置</td><td>用户管理、角色管理、项目管理、工时管理（全部）</td></tr>
+          <tr><td><span class="badge b-teal">项目经理</span></td><td>管理所属项目及成员，查看项目工时</td><td>项目管理（自己的）、工时统计（项目维度）</td></tr>
+          <tr><td><span class="badge b-amber">普通员工</span></td><td>登记和查看自己的工时</td><td>工时登记、我的工时</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule blue">
+      <strong>权限校验链路：</strong>用户登录 → 后端根据用户角色查询关联菜单 → 前端渲染可见菜单 → 每次接口请求后端校验该用户是否有对应菜单权限（防止绕过前端）。
+    </div>
+
+    <!-- 2.3 项目管理 -->
+    <h3>2.3 项目管理 <span class="badge b-teal">业务对象</span></h3>
+    <p>项目是工时登记的业务载体。员工只能在自己关联的项目下登记工时。</p>
+
+    <h4>功能点清单</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:30px;">#</th><th>功能点</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>项目列表</td><td>分页展示所有项目，支持按名称搜索、按状态筛选（进行中/已结束）</td></tr>
+          <tr><td>2</td><td>新增项目</td><td>填写项目名称、选择项目经理、设置起止日期</td></tr>
+          <tr><td>3</td><td>编辑项目</td><td>修改项目名称、项目经理、起止日期、状态</td></tr>
+          <tr><td>4</td><td>删除项目</td><td><strong>软删除</strong>。已关联工时记录的项目不可物理删除，仅可标记为「已结束」</td></tr>
+          <tr><td>5</td><td>项目成员管理</td><td>在项目详情中添加/移除成员。只有项目成员才能在该项目下登记工时</td></tr>
+          <tr><td>6</td><td>设置项目经理</td><td>项目经理从系统用户中选择，一个项目一个项目经理</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule">
+      <strong>关键约束：</strong>员工工时登记时的项目下拉列表 = 该员工参与的、状态为「进行中」的项目集合。已结束项目不出现在新增工时的下拉中，但历史工时仍可查看。
+    </div>
+
+    <!-- 2.4 工时管理 -->
+    <h3>2.4 工时管理 <span class="badge b-amber">核心业务</span></h3>
+    <p>工时管理是系统核心模块，支持员工每天按项目登记工时，系统强制校验单日总工时上限。</p>
+
+    <h4>功能点清单</h4>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th style="width:30px;">#</th><th>功能点</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>工时登记</td><td>选择日期 → 添加一个或多个项目 → 每个项目分别填写工时和备注 → 提交保存</td></tr>
+          <tr><td>2</td><td>多项目拆分登记</td><td>同一天可在多个项目下分别登记工时，系统自动汇总当日总工时</td></tr>
+          <tr><td>3</td><td>工时上限校验</td><td>单日所有项目工时之和不能超过 <strong>12 小时</strong>。超过时前端拦截 + 后端二次校验</td></tr>
+          <tr><td>4</td><td>编辑工时</td><td>可修改当天已登记的工时（修改项目、工时、备注），同样受 12h 上限约束</td></tr>
+          <tr><td>5</td><td>我的工时</td><td>按日历/列表查看自己已登记的工时，支持按日期范围、项目筛选</td></tr>
+          <tr><td>6</td><td>工时统计</td><td>项目经理可查看所属项目的工时汇总；管理员可查看全员工时报表</td></tr>
+          <tr><td>7</td><td>工时汇总报表</td><td>按项目/人员/时间维度汇总，支持导出 Excel</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule red">
+      <strong>核心校验规则（12h 上限）：</strong><br>
+      ① 前端实时计算：每修改一个工时输入框，实时累加当日所有项目工时，超过 12h 时进度条变红、禁用提交按钮并提示<br>
+      ② 后端二次校验：提交时后端查询该用户当天所有工时记录总和（含本次新增），若超过 12h 返回错误拒绝保存<br>
+      ③ 单项目工时约束：每个项目工时必须 &gt; 0 且 ≤ 12h，支持 0.5h 步长
+    </div>
+
+    <h4>工时登记交互说明</h4>
+    <ol>
+      <li>进入工时登记页面，默认选中当天日期</li>
+      <li>页面展示当前用户关联的「进行中」项目列表供选择</li>
+      <li>点击「添加项目」新增一行：项目下拉 + 工时输入 + 备注输入</li>
+      <li>可添加多行（多个项目），每行独立填写</li>
+      <li>底部实时显示「当日总工时 X.Xh / 12h」进度条</li>
+      <li>总工时 &gt; 12h 时：进度条变红、显示警告文案、提交按钮置灰</li>
+      <li>校验通过后点击「提交」，后端保存并返回成功</li>
+      <li>同一天再次进入：加载已登记数据，可编辑后重新保存</li>
+    </ol>
+  </section>
+
+  <!-- 3. 角色权限矩阵 -->
+  <section id="s3">
+    <h2><span class="icon" style="background:var(--teal);">03</span>角色权限矩阵</h2>
+    <p class="lead">角色与菜单/功能的映射关系。√=有权限，—=无权限。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>菜单 / 功能</th>
+            <th style="text-align:center;">系统管理员</th>
+            <th style="text-align:center;">项目经理</th>
+            <th style="text-align:center;">普通员工</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>用户管理（查看/增删改）</td><td style="text-align:center;">√</td><td style="text-align:center;">—</td><td style="text-align:center;">—</td></tr>
+          <tr><td>角色管理（查看/增删改/配权限）</td><td style="text-align:center;">√</td><td style="text-align:center;">—</td><td style="text-align:center;">—</td></tr>
+          <tr><td>项目管理（全部项目增删改）</td><td style="text-align:center;">√</td><td style="text-align:center;">—</td><td style="text-align:center;">—</td></tr>
+          <tr><td>项目管理（自己的项目）</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td><td style="text-align:center;">—</td></tr>
+          <tr><td>项目成员管理</td><td style="text-align:center;">√</td><td style="text-align:center;">√（自己项目）</td><td style="text-align:center;">—</td></tr>
+          <tr><td>工时登记</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td></tr>
+          <tr><td>我的工时（查看自己）</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td></tr>
+          <tr><td>工时统计（项目维度）</td><td style="text-align:center;">√</td><td style="text-align:center;">√（自己项目）</td><td style="text-align:center;">—</td></tr>
+          <tr><td>工时汇总报表（全员）</td><td style="text-align:center;">√</td><td style="text-align:center;">—</td><td style="text-align:center;">—</td></tr>
+          <tr><td>修改密码</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td><td style="text-align:center;">√</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule green">
+      <strong>权限扩展性：</strong>角色为自定义，管理员可随时新增角色并勾选菜单权限。以上矩阵为预置角色的默认配置，可按需调整。
+    </div>
+  </section>
+
+  <!-- 4. 数据模型设计 -->
+  <section id="s4">
+    <h2><span class="icon" style="background:var(--amber);">04</span>数据模型设计</h2>
+    <p class="lead">共 8 张表，分为权限体系（USER / ROLE / USER_ROLE / MENU / ROLE_MENU）和业务体系（PROJECT / PROJECT_MEMBER / TIMESHEET）。</p>
+
+    <h3>4.1 用户表 <code>sys_user</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>username</code></td><td>VARCHAR(50)</td><td>登录账号</td><td>唯一，非空</td></tr>
+          <tr><td><code>password</code></td><td>VARCHAR(100)</td><td>加密密码（BCrypt）</td><td>非空</td></tr>
+          <tr><td><code>name</code></td><td>VARCHAR(50)</td><td>姓名</td><td>非空</td></tr>
+          <tr><td><code>phone</code></td><td>VARCHAR(20)</td><td>手机号</td><td>—</td></tr>
+          <tr><td><code>status</code></td><td>TINYINT</td><td>状态：1=启用，0=停用</td><td>默认 1</td></tr>
+          <tr><td><code>created_at</code></td><td>DATETIME</td><td>创建时间</td><td>—</td></tr>
+          <tr><td><code>updated_at</code></td><td>DATETIME</td><td>更新时间</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.2 角色表 <code>sys_role</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>role_name</code></td><td>VARCHAR(50)</td><td>角色名称</td><td>唯一，非空</td></tr>
+          <tr><td><code>remark</code></td><td>VARCHAR(200)</td><td>描述</td><td>—</td></tr>
+          <tr><td><code>created_at</code></td><td>DATETIME</td><td>创建时间</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.3 用户-角色关联表 <code>sys_user_role</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>user_id</code></td><td>BIGINT</td><td>用户ID</td><td>FK → sys_user</td></tr>
+          <tr><td><code>role_id</code></td><td>BIGINT</td><td>角色ID</td><td>FK → sys_role</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--text-2);">一个用户可分配多个角色，一个角色可分配给多个用户（多对多）。</p>
+
+    <h3>4.4 菜单表 <code>sys_menu</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>menu_name</code></td><td>VARCHAR(50)</td><td>菜单名称</td><td>非空</td></tr>
+          <tr><td><code>parent_id</code></td><td>BIGINT</td><td>父菜单ID（0=顶级）</td><td>默认 0</td></tr>
+          <tr><td><code>path</code></td><td>VARCHAR(100)</td><td>前端路由路径</td><td>—</td></tr>
+          <tr><td><code>sort</code></td><td>INT</td><td>排序号</td><td>默认 0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.5 角色-菜单权限表 <code>sys_role_menu</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>role_id</code></td><td>BIGINT</td><td>角色ID</td><td>FK → sys_role</td></tr>
+          <tr><td><code>menu_id</code></td><td>BIGINT</td><td>菜单ID</td><td>FK → sys_menu</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.6 项目表 <code>project</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>project_name</code></td><td>VARCHAR(100)</td><td>项目名称</td><td>非空</td></tr>
+          <tr><td><code>manager_id</code></td><td>BIGINT</td><td>项目经理</td><td>FK → sys_user</td></tr>
+          <tr><td><code>status</code></td><td>TINYINT</td><td>1=进行中，0=已结束</td><td>默认 1</td></tr>
+          <tr><td><code>start_date</code></td><td>DATE</td><td>开始日期</td><td>—</td></tr>
+          <tr><td><code>end_date</code></td><td>DATE</td><td>结束日期</td><td>—</td></tr>
+          <tr><td><code>created_at</code></td><td>DATETIME</td><td>创建时间</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>4.7 项目成员表 <code>project_member</code></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>project_id</code></td><td>BIGINT</td><td>项目ID</td><td>FK → project</td></tr>
+          <tr><td><code>user_id</code></td><td>BIGINT</td><td>成员用户ID</td><td>FK → sys_user</td></tr>
+          <tr><td><code>joined_at</code></td><td>DATETIME</td><td>加入时间</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:13px;color:var(--text-2);">项目经理默认是项目成员。同一用户可在多个项目中。唯一约束：(project_id, user_id)。</p>
+
+    <h3>4.8 工时记录表 <code>timesheet</code> <span class="badge b-red">核心表</span></h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>字段</th><th>类型</th><th>说明</th><th>约束</th></tr></thead>
+        <tbody>
+          <tr><td><code>id</code></td><td>BIGINT</td><td>主键</td><td>自增</td></tr>
+          <tr><td><code>user_id</code></td><td>BIGINT</td><td>登记人</td><td>FK → sys_user</td></tr>
+          <tr><td><code>project_id</code></td><td>BIGINT</td><td>关联项目</td><td>FK → project</td></tr>
+          <tr><td><code>work_date</code></td><td>DATE</td><td>登记日期</td><td>非空</td></tr>
+          <tr><td><code>hours</code></td><td>DECIMAL(4,1)</td><td>工时（小时），支持0.5步长</td><td>&gt; 0 且 ≤ 12</td></tr>
+          <tr><td><code>remark</code></td><td>VARCHAR(500)</td><td>工作内容备注</td><td>—</td></tr>
+          <tr><td><code>created_at</code></td><td>DATETIME</td><td>创建时间</td><td>—</td></tr>
+          <tr><td><code>updated_at</code></td><td>DATETIME</td><td>更新时间</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rule red">
+      <strong>12h 上限的数据库层保障：</strong>建议在 <code>timesheet</code> 表上创建联合索引 <code>(user_id, work_date)</code>，提交时通过 <code>SELECT SUM(hours) FROM timesheet WHERE user_id=? AND work_date=?</code> 快速校验当日总工时。业务层在保存前校验：当前新增/修改后的总工时 ≤ 12h。
+    </div>
+  </section>
+
+  <!-- 5. 接口设计 -->
+  <section id="s5">
+    <h2><span class="icon" style="background:var(--red);">05</span>接口设计（API）</h2>
+    <p class="lead">RESTful 风格，统一前缀 <code>/api/v1</code>，所有接口需携带 Token（登录接口除外）。</p>
+
+    <h3>5.1 认证接口</h3>
+    <div class="api">
+      <div class="api-head"><span class="api-method m-post">POST</span><span class="api-path">/api/v1/auth/login</span></div>
+      <div class="api-body">
+        <p>登录认证，返回 JWT Token</p>
+        <pre>请求体：
+{
+  "username": "zhangsan",
+  "password": "******"
+}
+
+响应：
+{
+  "code": 200,
+  "data": { "token": "eyJhbG...", "name": "张三", "roles": ["普通员工"] }
+}</pre>
+      </div>
+    </div>
+    <div class="api">
+      <div class="api-head"><span class="api-method m-post">POST</span><span class="api-path">/api/v1/auth/change-password</span></div>
+      <div class="api-body"><p>修改密码，需校验原密码</p></div>
+    </div>
+
+    <h3>5.2 用户管理接口</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:70px;">方法</th><th>路径</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/users</code></td><td>用户列表（分页+搜索）</td></tr>
+          <tr><td><span class="api-method m-post">POST</span></td><td><code>/api/v1/users</code></td><td>新增用户</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/users/{id}</code></td><td>编辑用户</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/users/{id}/status</code></td><td>启用/停用账号</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/users/{id}/reset-password</code></td><td>重置密码</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/users/{id}/roles</code></td><td>分配角色</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5.3 角色管理接口</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:70px;">方法</th><th>路径</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/roles</code></td><td>角色列表</td></tr>
+          <tr><td><span class="api-method m-post">POST</span></td><td><code>/api/v1/roles</code></td><td>新增角色</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/roles/{id}</code></td><td>编辑角色</td></tr>
+          <tr><td><span class="api-method m-del">DELETE</span></td><td><code>/api/v1/roles/{id}</code></td><td>删除角色（已关联用户时拒绝）</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/roles/{id}/menus</code></td><td>配置菜单权限</td></tr>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/menus/tree</code></td><td>获取菜单树（配置权限用）</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5.4 项目管理接口</h3>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:70px;">方法</th><th>路径</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/projects</code></td><td>项目列表（分页+搜索）</td></tr>
+          <tr><td><span class="api-method m-post">POST</span></td><td><code>/api/v1/projects</code></td><td>新增项目</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/projects/{id}</code></td><td>编辑项目</td></tr>
+          <tr><td><span class="api-method m-del">DELETE</span></td><td><code>/api/v1/projects/{id}</code></td><td>删除项目（软删除/拒绝）</td></tr>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/projects/{id}/members</code></td><td>获取项目成员</td></tr>
+          <tr><td><span class="api-method m-post">POST</span></td><td><code>/api/v1/projects/{id}/members</code></td><td>添加项目成员</td></tr>
+          <tr><td><span class="api-method m-del">DELETE</span></td><td><code>/api/v1/projects/{id}/members/{userId}</code></td><td>移除项目成员</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>5.5 工时管理接口</h3>
+    <div class="api">
+      <div class="api-head"><span class="api-method m-post">POST</span><span class="api-path">/api/v1/timesheets</span></div>
+      <div class="api-body">
+        <p>提交工时登记（支持批量提交当天多个项目工时）</p>
+        <pre>请求体：
+{
+  "work_date": "2026-08-05",
+  "items": [
+    { "project_id": 1, "hours": 6.0, "remark": "需求评审+用例编写" },
+    { "project_id": 3, "hours": 3.5, "remark": "接口联调测试" }
+  ]
+}
+
+响应：
+{
+  "code": 200,
+  "message": "保存成功"
+}
+
+校验失败响应（总工时超12h）：
+{
+  "code": 400,
+  "message": "当日总工时 13.5h 超过上限 12h，请调整"
+}</pre>
+      </div>
+    </div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:70px;">方法</th><th>路径</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/timesheets/my</code></td><td>我的工时列表（按日期范围+项目筛选）</td></tr>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/timesheets/my/{date}</code></td><td>查看某天工时详情（回显编辑用）</td></tr>
+          <tr><td><span class="api-method m-put">PUT</span></td><td><code>/api/v1/timesheets/{date}</code></td><td>修改某天工时（整体覆盖）</td></tr>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/timesheets/stats</code></td><td>工时统计（按项目/人员/时间维度汇总）</td></tr>
+          <tr><td><span class="api-method m-get">GET</span></td><td><code>/api/v1/timesheets/export</code></td><td>导出工时报表（Excel）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 6. 核心业务规则 -->
+  <section id="s6">
+    <h2><span class="icon" style="background:var(--green);">06</span>核心业务规则</h2>
+    <p class="lead">所有业务规则的汇总，开发与测试均以此为验收依据。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:40px;">#</th><th>规则</th><th>说明</th><th style="width:90px;">校验层</th></tr></thead>
+        <tbody>
+          <tr><td>R1</td><td>账号停用不可登录</td><td>登录时校验 status=1，否则返回「账号已停用」</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R2</td><td>登录密码加密</td><td>BCrypt 加密存储，不可逆</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R3</td><td>菜单权限动态渲染</td><td>前端菜单根据用户角色关联的菜单列表动态渲染</td><td><span class="badge b-blue">后端+前端</span></td></tr>
+          <tr><td>R4</td><td>接口权限二次校验</td><td>后端每个接口校验当前用户是否有对应菜单权限</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R5</td><td>角色删除约束</td><td>已被分配给用户的角色不可删除</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R6</td><td>项目删除约束</td><td>有工时记录的项目不可删除，仅可标记为「已结束」</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R7</td><td>工时项目范围</td><td>登记工时只能选择自己参与的、进行中的项目</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R8</td><td>单项目工时 &gt; 0</td><td>每个项目的工时必须 &gt; 0</td><td><span class="badge b-blue">前端+后端</span></td></tr>
+          <tr><td>R9</td><td><strong>单日总工时 ≤ 12h</strong></td><td>同一天所有项目工时之和 ≤ 12h，否则拒绝保存</td><td><span class="badge b-red">前端+后端</span></td></tr>
+          <tr><td>R10</td><td>工时步长 0.5h</td><td>工时输入支持 0.5 的倍数</td><td><span class="badge b-blue">前端+后端</span></td></tr>
+          <tr><td>R11</td><td>同日可多项目</td><td>同一天可在多个项目下分别登记工时</td><td><span class="badge b-gray">业务</span></td></tr>
+          <tr><td>R12</td><td>同日同项目唯一</td><td>同一用户同一天同一项目只有一条工时记录</td><td><span class="badge b-blue">后端</span></td></tr>
+          <tr><td>R13</td><td>工时可编辑</td><td>已登记的工时可修改，同样受 12h 上限约束</td><td><span class="badge b-gray">业务</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 7. 非功能性需求 -->
+  <section id="s7">
+    <h2><span class="icon" style="background:#5F5E5A;">07</span>非功能性需求</h2>
+
+    <h3>安全</h3>
+    <ul>
+      <li>密码 BCrypt 加密存储，禁止明文</li>
+      <li>接口认证使用 JWT Token，有效期 8 小时，支持续签</li>
+      <li>所有写操作接口做权限校验，防止越权（如普通员工不能调用用户管理接口）</li>
+      <li>SQL 参数化查询，防止注入</li>
+    </ul>
+
+    <h3>性能</h3>
+    <ul>
+      <li>工时列表查询响应时间 &lt; 500ms（数据量 10 万条以内）</li>
+      <li>关键索引：timesheet(user_id, work_date)、timesheet(project_id)、project_member(user_id)</li>
+      <li>工时统计报表支持按月/按季度聚合，大数据量时考虑预计算或缓存</li>
+    </ul>
+
+    <h3>兼容性</h3>
+    <ul>
+      <li>浏览器：Chrome 90+、Edge 90+、Safari 14+</li>
+      <li>最小分辨率 1280×720，推荐 1920×1080</li>
+    </ul>
+
+    <h3>扩展性（预留）</h3>
+    <ul>
+      <li>工时审批流：预留 timesheet 表 status 字段扩展（草稿/待审/通过/驳回）</li>
+      <li>LDAP/SSO 集成：预留认证接口扩展点</li>
+      <li>移动端：API 已 RESTful 化，可直接对接移动端或小程序</li>
+    </ul>
+  </section>
+
+  <!-- 8. 页面清单 -->
+  <section id="s8">
+    <h2><span class="icon" style="background:#185FA5;">08</span>页面清单与说明</h2>
+    <p class="lead">系统共 11 个页面，按角色可见性分组。</p>
+
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th style="width:30px;">#</th><th>页面</th><th>路径</th><th>说明</th><th>可见角色</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>登录页</td><td><code>/login</code></td><td>账号密码登录</td><td><span class="badge b-gray">公开</span></td></tr>
+          <tr><td>2</td><td>用户管理</td><td><code>/system/user</code></td><td>用户CRUD + 启停 + 分配角色</td><td><span class="badge b-purple">管理员</span></td></tr>
+          <tr><td>3</td><td>角色管理</td><td><code>/system/role</code></td><td>角色CRUD + 菜单权限配置</td><td><span class="badge b-purple">管理员</span></td></tr>
+          <tr><td>4</td><td>项目列表</td><td><code>/project/list</code></td><td>项目CRUD</td><td><span class="badge b-purple">管理员</span> <span class="badge b-teal">项目经理</span></td></tr>
+          <tr><td>5</td><td>项目详情</td><td><code>/project/detail/{id}</code></td><td>项目信息 + 成员管理</td><td><span class="badge b-purple">管理员</span> <span class="badge b-teal">项目经理</span></td></tr>
+          <tr><td>6</td><td>工时登记</td><td><code>/timesheet/create</code></td><td>每日工时登记（核心页面）</td><td><span class="badge b-gray">全部</span></td></tr>
+          <tr><td>7</td><td>我的工时</td><td><code>/timesheet/my</code></td><td>查看/编辑自己的工时记录</td><td><span class="badge b-gray">全部</span></td></tr>
+          <tr><td>8</td><td>工时统计</td><td><code>/timesheet/stats</code></td><td>项目维度工时汇总</td><td><span class="badge b-purple">管理员</span> <span class="badge b-teal">项目经理</span></td></tr>
+          <tr><td>9</td><td>工时报表</td><td><code>/timesheet/report</code></td><td>全员工时报表 + 导出</td><td><span class="badge b-purple">管理员</span></td></tr>
+          <tr><td>10</td><td>修改密码</td><td><code>/settings/password</code></td><td>修改个人密码</td><td><span class="badge b-gray">全部</span></td></tr>
+          <tr><td>11</td><td>个人中心</td><td><code>/settings/profile</code></td><td>查看个人信息</td><td><span class="badge b-gray">全部</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>工时管理系统 · 产品设计文档 V1.0 · 2026-08-05</p>
+  </div>
+
+</div>
+</body>
+</html>

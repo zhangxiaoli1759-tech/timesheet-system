@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>工时管理系统 V1.0</title>
+<style>
+:root {
+  --c-bg: #f5f6fa;
+  --c-white: #fff;
+  --c-text: #1a1a2e;
+  --c-text2: #6b7280;
+  --c-text3: #9ca3af;
+  --c-border: #e5e7eb;
+  --c-primary: #4f46e5;
+  --c-primary-l: #eef2ff;
+  --c-danger: #dc2626;
+  --c-danger-l: #fef2f2;
+  --c-success: #16a34a;
+  --c-success-l: #f0fdf4;
+  --c-warning: #d97706;
+  --c-warning-l: #fffbeb;
+  --c-sider: #1e1b4b;
+  --c-sider-hover: #312e81;
+  --c-sider-active: #4338ca;
+  --text-white: #e2e8f0;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; background:var(--c-bg); color:var(--c-text); font-size:14px; line-height:1.6; height:100vh; overflow:hidden; }
+a { color:var(--c-primary); text-decoration:none; }
+input,select,textarea,button { font-family:inherit; font-size:14px; outline:none; }
+input,select,textarea { border:1px solid var(--c-border); border-radius:6px; padding:8px 12px; width:100%; transition:border-color 0.2s; }
+input:focus,select:focus,textarea:focus { border-color:var(--c-primary); box-shadow:0 0 0 3px var(--c-primary-l); }
+textarea { resize:vertical; min-height:60px; }
+button { cursor:pointer; border:none; border-radius:6px; padding:8px 16px; font-weight:500; transition:all 0.15s; }
+button:disabled { opacity:0.5; cursor:not-allowed; }
+.btn-primary { background:var(--c-primary); color:#fff; }
+.btn-primary:hover { background:#4338ca; }
+.btn-default { background:var(--c-white); color:var(--c-text); border:1px solid var(--c-border); }
+.btn-default:hover { background:var(--c-bg); }
+.btn-danger { background:var(--c-danger-l); color:var(--c-danger); border:1px solid var(--c-danger); }
+.btn-danger:hover { background:#fee2e2; }
+.btn-sm { padding:4px 12px; font-size:13px; }
+.btn-xs { padding:2px 8px; font-size:12px; }
+.badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500; }
+.b-success { background:var(--c-success-l); color:var(--c-success); }
+.b-danger { background:var(--c-danger-l); color:var(--c-danger); }
+.b-warning { background:var(--c-warning-l); color:var(--c-warning); }
+.b-primary { background:var(--c-primary-l); color:var(--c-primary); }
+.b-gray { background:#f3f4f6; color:var(--c-text2); }
+.btn-warning { background:var(--c-warning-l); color:var(--c-warning); border:1px solid var(--c-warning); }
+.btn-warning:hover { background:#fde68a; }
+
+.card { background:var(--c-white); border-radius:var(--radius); box-shadow:var(--shadow); }
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:1000; align-items:center; justify-content:center; }
+.modal-overlay.show { display:flex; }
+.modal { background:var(--c-white); border-radius:12px; padding:24px; width:520px; max-height:80vh; overflow-y:auto; }
+.modal h3 { font-size:16px; margin-bottom:16px; }
+.modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:20px; }
+
+table { width:100%; border-collapse:collapse; }
+th { text-align:left; padding:10px 14px; font-weight:600; font-size:13px; color:var(--c-text2); border-bottom:1px solid var(--c-border); background:#fafafa; white-space:nowrap; }
+td { padding:10px 14px; border-bottom:1px solid var(--c-border); font-size:13px; }
+tr:hover { background:#fafafa; }
+
+#login-page { display:flex; align-items:center; justify-content:center; height:100vh; background:linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%); }
+#login-page .card { width:380px; padding:36px; }
+#login-page h1 { font-size:22px; font-weight:700; text-align:center; margin-bottom:6px; color:var(--c-primary); }
+#login-page .subtitle { text-align:center; font-size:13px; color:var(--c-text3); margin-bottom:28px; }
+#login-page input { margin-bottom:16px; padding:10px 14px; }
+
+#app { height:100vh; display:flex; flex-direction:column; }
+
+#topnav { background:var(--c-sider); display:flex; align-items:center; padding:0 20px; height:50px; gap:16px; flex-shrink:0; z-index:100; }
+#topnav .logo { color:#fff; font-size:15px; font-weight:600; white-space:nowrap; }
+#topnav .tnav-tabs { display:flex; gap:2px; }
+#topnav .tnav-tab { padding:5px 14px; font-size:12px; color:rgba(255,255,255,0.45); cursor:pointer; border-radius:4px; transition:all 0.15s; white-space:nowrap; }
+#topnav .tnav-tab:hover { color:rgba(255,255,255,0.75); background:rgba(255,255,255,0.06); }
+#topnav .tnav-tab.active { color:#fff; background:var(--c-sider-active); font-weight:500; }
+#topnav .tnav-spacer { flex:1; }
+#topnav .tnav-user { font-size:13px; color:rgba(255,255,255,0.8); }
+#topnav .tnav-time { font-size:12px; color:rgba(255,255,255,0.4); margin-right:8px; }
+#topnav .tnav-logout { font-size:12px; color:rgba(255,255,255,0.4); cursor:pointer; padding:3px 8px; border-radius:4px; transition:all 0.15s; }
+#topnav .tnav-logout:hover { color:#fff; background:rgba(255,255,255,0.1); }
+
+#body-wrap { flex:1; display:flex; overflow:hidden; }
+#sidebar { width:200px; background:var(--c-sider); border-right:1px solid rgba(255,255,255,0.08); overflow-y:auto; flex-shrink:0; padding:8px 0; }
+#sidebar .snav-item { display:flex; align-items:center; gap:8px; padding:10px 20px; font-size:13px; color:var(--text-white); cursor:pointer; transition:all 0.15s; border-left:3px solid transparent; }
+#sidebar .snav-item:hover { color:#fff; background:var(--c-sider-hover); }
+#sidebar .snav-item.active { color:#fff; background:var(--c-sider-active); font-weight:500; border-left-color:var(--c-primary); }
+#sidebar .snav-icon { font-size:16px; width:20px; text-align:center; }
+
+#main-content { flex:1; padding:24px; overflow-y:auto; }
+.page { display:none; }
+.page.active { display:block; }
+
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
+.form-grid.span2 { grid-template-columns:1fr; }
+.form-item { display:flex; flex-direction:column; gap:4px; }
+.form-item.full { grid-column:1 / -1; }
+.form-item label { font-size:13px; color:var(--c-text2); font-weight:500; }
+.form-item .hint { font-size:12px; color:var(--c-text3); }
+.form-inline { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.form-inline input,.form-inline select { width:auto; }
+
+.toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
+.toolbar-left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.stat-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
+.stat-cards .card { padding:16px 20px; }
+.stat-cards .num { font-size:28px; font-weight:700; color:var(--c-primary); }
+.stat-cards .label { font-size:13px; color:var(--c-text2); margin-top:2px; }
+
+.tree-node { padding-left:20px; }
+.tree-label { display:flex; align-items:center; gap:6px; padding:4px 0; cursor:pointer; }
+
+.ts-row { display:grid; grid-template-columns:2fr 1fr 2.5fr auto; gap:8px; align-items:center; margin-bottom:10px; }
+.ts-summary { background:var(--c-bg); padding:14px 16px; border-radius:var(--radius); margin:16px 0; }
+.ts-summary .bar-bg { height:8px; background:#e5e7eb; border-radius:4px; overflow:hidden; margin-top:8px; }
+.ts-summary .bar-fill { height:100%; border-radius:4px; transition:width 0.3s, background 0.3s; }
+.ts-summary .bar-fill.ok { background:var(--c-success); }
+.ts-summary .bar-fill.over { background:var(--c-danger); }
+.ts-summary .total-text { font-size:18px; font-weight:700; }
+.ts-summary .total-text.over { color:var(--c-danger); }
+.warn-msg { display:none; color:var(--c-danger); font-size:13px; margin-top:4px; }
+.warn-msg.show { display:block; }
+
+.toast { position:fixed; top:16px; right:16px; z-index:2000; padding:12px 20px; border-radius:8px; color:#fff; font-size:14px; display:none; animation:fadeIn 0.3s; }
+.toast.show { display:block; }
+.toast.success { background:var(--c-success); }
+.toast.error { background:var(--c-danger); }
+@keyframes fadeIn { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }
+
+.empty-state { text-align:center; padding:48px 0; color:var(--c-text3); }
+.empty-state .icon { font-size:40px; margin-bottom:8px; }
+
+::-webkit-scrollbar { width:6px; height:6px; }
+::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div id="login-page">
+  <div class="card">
+    <h1>工时管理系统</h1>
+    <p class="subtitle">TimeSheet Management System V1.0</p>
+    <input type="text" id="login-username" placeholder="账号" autocomplete="username">
+    <input type="password" id="login-password" placeholder="密码" autocomplete="current-password">
+    <button class="btn-primary" style="width:100%;padding:10px;" onclick="doLogin()">登 录</button>
+    <p id="login-err" style="color:var(--c-danger);font-size:13px;text-align:center;margin-top:12px;display:none;"></p>
+    <p style="text-align:center;font-size:12px;color:var(--c-text3);margin-top:16px;line-height:1.8;">
+      预置账号<br>
+      admin / 123456（管理员）<br>
+      zhangsan / 123456（项目经理）<br>
+      lisi / 123456（普通员工）
+    </p>
+  </div>
+</div>
+
+<!-- 主应用 -->
+<div id="app" style="display:none;">
+  <!-- 顶部导航 -->
+  <div id="topnav">
+    <div class="logo">工时管理系统</div>
+    <div class="tnav-tabs">
+      <div class="tnav-tab active" onclick="switchMenuTab('biz')">业务功能</div>
+      <div class="tnav-tab" onclick="switchMenuTab('system')">系统管理</div>
+    </div>
+    <div class="tnav-spacer"></div>
+    <span class="tnav-time" id="current-time"></span>
+    <span class="tnav-user" id="topbar-user-name">--</span>
+    <span class="tnav-logout" onclick="doLogout()">退出</span>
+  </div>
+  <!-- 主体（左侧二级菜单 + 右侧内容） -->
+  <div id="body-wrap">
+    <div id="sidebar"></div>
+    <div id="main-content">
+      <div class="page active" id="page-dashboard"></div>
+      <div class="page" id="page-system-user"></div>
+      <div class="page" id="page-system-role"></div>
+      <div class="page" id="page-project"></div>
+      <div class="page" id="page-timesheet-create"></div>
+      <div class="page" id="page-timesheet-my"></div>
+      <div class="page" id="page-timesheet-stats"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 通用弹窗 -->
+<div class="modal-overlay" id="modal">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== 数据层 ====================
+const DB = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)) || null; } catch(e) { return null; } },
+  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
+};
+
+function initData() {
+  if (!DB.get('wt_inited')) {
+    DB.set('wt_menus', [
+      { id:1, name:'首页', icon:'H', path:'dashboard', parent_id:0, sort:1 },
+      { id:2, name:'用户管理', icon:'U', path:'system-user', parent_id:0, sort:2 },
+      { id:3, name:'角色管理', icon:'R', path:'system-role', parent_id:0, sort:3 },
+      { id:4, name:'项目管理', icon:'P', path:'project', parent_id:0, sort:4 },
+      { id:5, name:'工时登记', icon:'T', path:'timesheet-create', parent_id:0, sort:5 },
+      { id:6, name:'我的工时', icon:'M', path:'timesheet-my', parent_id:0, sort:6 },
+      { id:7, name:'工时统计', icon:'S', path:'timesheet-stats', parent_id:0, sort:7 },
+    ]);
+    DB.set('wt_roles', [
+      { id:1, name:'系统管理员', remark:'系统最高权限' },
+      { id:2, name:'项目经理', remark:'管理所属项目' },
+      { id:3, name:'普通员工', remark:'登记和查看工时' },
+    ]);
+    DB.set('wt_role_menus', {
+      1: [1,2,3,4,5,6,7],
+      2: [1,4,5,6,7],
+      3: [1,5,6],
+    });
+    DB.set('wt_users', [
+      { id:1, username:'admin', password:'123456', name:'系统管理员', phone:'13800000001', status:1, created_at:'2026-01-01' },
+      { id:2, username:'zhangsan', password:'123456', name:'张三', phone:'13800000002', status:1, created_at:'2026-01-02' },
+      { id:3, username:'lisi', password:'123456', name:'李四', phone:'13800000003', status:1, created_at:'2026-01-03' },
+    ]);
+    DB.set('wt_user_roles', { 1:[1], 2:[2], 3:[3] });
+    DB.set('wt_projects', [
+      { id:1, name:'电商平台重构', manager_id:2, status:1, start_date:'2026-03-01', end_date:'2026-09-30', created_at:'2026-03-01' },
+      { id:2, name:'数据中台建设', manager_id:2, status:1, start_date:'2026-04-15', end_date:'2026-10-31', created_at:'2026-04-15' },
+      { id:3, name:'移动端App v2.0', manager_id:2, status:1, start_date:'2026-05-01', end_date:'2026-11-30', created_at:'2026-05-01' },
+      { id:4, name:'内部运维支持', manager_id:1, status:1, start_date:'2026-01-01', end_date:'2026-12-31', created_at:'2026-01-01' },
+    ]);
+    DB.set('wt_project_members', { 1:[1,2,3], 2:[2,3], 3:[2], 4:[1,2,3] });
+    DB.set('wt_timesheets', []);
+    DB.set('wt_inited', true);
+  }
+}
+initData();
+
+// ==================== 认证 ====================
+let currentUser = JSON.parse(sessionStorage.getItem('wt_user'));
+let currentMenus = [];
+
+function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value.trim();
+  const err = document.getElementById('login-err');
+  if (!u || !p) { err.textContent = '请输入账号和密码'; err.style.display = 'block'; return; }
+  const users = DB.get('wt_users') || [];
+  const found = users.find(x => x.username === u);
+  if (!found) { err.textContent = '账号不存在'; err.style.display = 'block'; return; }
+  if (found.status === 0) { err.textContent = '账号已停用，请联系管理员'; err.style.display = 'block'; return; }
+  if (found.password !== p) { err.textContent = '密码错误'; err.style.display = 'block'; return; }
+  err.style.display = 'none';
+  currentUser = found;
+  sessionStorage.setItem('wt_user', JSON.stringify(found));
+  loadApp();
+}
+
+function doLogout() {
+  sessionStorage.removeItem('wt_user');
+  currentUser = null;
+  document.getElementById('login-page').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-username').value = '';
+  document.getElementById('login-password').value = '';
+}
+
+function getMyMenus() {
+  const userRoles = DB.get('wt_user_roles') || {};
+  const roleMenus = DB.get('wt_role_menus') || {};
+  const allMenus = DB.get('wt_menus') || [];
+  const myRoleIds = userRoles[currentUser.id] || [];
+  const menuIds = new Set();
+  myRoleIds.forEach(rid => { (roleMenus[rid] || []).forEach(mid => menuIds.add(mid)); });
+  return allMenus.filter(m => menuIds.has(m.id)).sort((a,b) => a.sort - b.sort);
+}
+
+// ==================== 路由 ====================
+function navigate(path) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const page = document.getElementById('page-' + path);
+  if (page) page.classList.add('active');
+  // 高亮侧边菜单
+  document.querySelectorAll('#sidebar .snav-item').forEach(m => m.classList.remove('active'));
+  const activeMenu = document.querySelector(`#sidebar [data-path="${path}"]`);
+  if (activeMenu) activeMenu.classList.add('active');
+  renderPage(path);
+}
+
+function renderPage(path) {
+  switch(path) {
+    case 'dashboard': renderDashboard(); break;
+    case 'system-user': renderUserList(); break;
+    case 'system-role': renderRoleList(); break;
+    case 'project': renderProjectList(); break;
+    case 'timesheet-create': renderTimesheetCreate(window._editDate); window._editDate = undefined; break;
+    case 'timesheet-my': renderTimesheetMy(); break;
+    case 'timesheet-stats': renderTimesheetStats(); break;
+  }
+}
+
+// ==================== 渲染工具 ====================
+function escapeHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast ' + type + ' show';
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function showModal(title, bodyHtml, onSave) {
+  document.getElementById('modal-body').innerHTML = '<h3>'+title+'</h3>'+bodyHtml;
+  const overlay = document.getElementById('modal');
+  overlay.classList.add('show');
+  overlay._onSave = onSave;
+  overlay._title = title;
+}
+function closeModal() { document.getElementById('modal').classList.remove('show'); }
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+function getUserById(id) {
+  const users = DB.get('wt_users') || [];
+  return users.find(u => u.id === id);
+}
+
+function getProjectById(id) {
+  return (DB.get('wt_projects') || []).find(p => p.id === id);
+}
+
+function getMyProjects() {
+  const pm = DB.get('wt_project_members') || {};
+  const myProjectIds = pm[currentUser.id] || [];
+  return (DB.get('wt_projects') || []).filter(p => p.status === 1 && myProjectIds.includes(p.id));
+}
+
+// ==================== 菜单渲染 ====================
+function loadApp() {
+  document.getElementById('login-page').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  currentMenus = getMyMenus();
+  document.getElementById('topbar-user-name').textContent = currentUser.name;
+  updateTime();
+  setInterval(updateTime, 30000);
+  // 菜单分组数据
+  const iconMap = { H:'🏠', U:'👤', R:'🔐', P:'📁', T:'⏱️', M:'📋', S:'📊' };
+  const systemIds = [2, 3];
+  window._bizMenus = currentMenus.filter(m => !systemIds.includes(m.id));
+  window._sysMenus = currentMenus.filter(m => systemIds.includes(m.id));
+  // 隐藏不存在的 tab
+  if (window._sysMenus.length === 0) document.querySelector('.tnav-tab[onclick*="system"]').style.display = 'none';
+  if (window._bizMenus.length === 0) document.querySelector('.tnav-tab[onclick*="biz"]').style.display = 'none';
+  // 默认渲染业务功能
+  renderSidebar(window._bizMenus, iconMap);
+  navigate('dashboard');
+}
+
+function renderSidebar(menus, iconMap) {
+  iconMap = iconMap || { H:'🏠', U:'👤', R:'🔐', P:'📁', T:'⏱️', M:'📋', S:'📊' };
+  document.getElementById('sidebar').innerHTML = menus.map(m => {
+    const ico = iconMap[m.icon] || m.icon;
+    return '<div class="snav-item" data-path="'+m.path+'" onclick="navigate(\''+m.path+'\')">'+
+      '<span class="snav-icon">'+ico+'</span><span>'+m.name+'</span></div>';
+  }).join('');
+}
+
+function switchMenuTab(group) {
+  document.querySelectorAll('.tnav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('.tnav-tab[onclick*="'+group+'"]').classList.add('active');
+  const menus = group === 'system' ? window._sysMenus : window._bizMenus;
+  renderSidebar(menus);
+  if (menus.length > 0) navigate(menus[0].path);
+}
+
+function updateTime() {
+  const now = new Date();
+  document.getElementById('current-time').textContent =
+    now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')+' '+
+    String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
+
+// 键盘登录
+document.getElementById('login-password').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doLogin();
+});
+
+// 检查已登录
+if (currentUser) { loadApp(); }
+
+// ==================== 1. 首页 ====================
+function renderDashboard() {
+  const users = DB.get('wt_users') || [];
+  const projects = DB.get('wt_projects') || [];
+  const timesheets = DB.get('wt_timesheets') || [];
+  const pm = DB.get('wt_project_members') || {};
+  const myProjects = getMyProjects();
+  const today = new Date().toISOString().slice(0,10);
+  const todayTs = timesheets.filter(t => t.user_id === currentUser.id && t.work_date === today);
+  const todayHours = todayTs.reduce((s,t) => s + t.hours, 0);
+  document.getElementById('page-dashboard').innerHTML =
+    '<div class="stat-cards">'+
+      '<div class="card"><div class="num">'+users.length+'</div><div class="label">系统用户</div></div>'+
+      '<div class="card"><div class="num">'+projects.filter(p=>p.status===1).length+'</div><div class="label">进行中项目</div></div>'+
+      '<div class="card"><div class="num">'+myProjects.length+'</div><div class="label">我参与的项目</div></div>'+
+      '<div class="card"><div class="num">'+todayHours.toFixed(1)+'h</div><div class="label">今日已登记工时</div></div>'+
+    '</div>';
+}
+
+// ==================== 2. 用户管理 ====================
+function renderUserList(q) {
+  let users = DB.get('wt_users') || [];
+  const roles = DB.get('wt_roles') || [];
+  const ur = DB.get('wt_user_roles') || {};
+  q = q || document.getElementById('user-search-input')?.value || '';
+  if (q) { const kw = q.toLowerCase(); users = users.filter(u => u.name.includes(kw) || u.username.includes(kw)); }
+  const statusMap = {0:'<span class="badge b-danger">已停用</span>', 1:'<span class="badge b-success">已启用</span>'};
+  const getUserRoleNames = uid => (ur[uid]||[]).map(rid => { const r = roles.find(rr=>rr.id===rid); return r?r.name:''; }).filter(Boolean).join(', ');
+  document.getElementById('page-system-user').innerHTML =
+    '<div class="toolbar">'+
+      '<div class="toolbar-left">'+
+        '<input id="user-search-input" placeholder="搜索姓名/账号" style="width:200px;" value="'+escapeHtml(q)+'" oninput="renderUserList()">'+
+        '<button class="btn-primary" onclick="showUserForm()">新增用户</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="card"><table>'+
+      '<thead><tr><th>ID</th><th>账号</th><th>姓名</th><th>手机号</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>'+
+      '<tbody>'+users.map(u => '<tr><td>'+u.id+'</td><td>'+escapeHtml(u.username)+'</td><td>'+escapeHtml(u.name)+'</td><td>'+escapeHtml(u.phone||'')+'</td><td>'+getUserRoleNames(u.id)+'</td><td>'+statusMap[u.status]+'</td><td>'+u.created_at+'</td><td>'+
+        '<button class="btn-primary btn-xs" onclick="showUserForm('+u.id+')">编辑</button> '+
+        '<button class="btn-default btn-xs" onclick="showRoleAssign('+u.id+')">角色</button> '+
+        '<button class="'+(u.status? 'btn-danger' : 'btn-default')+' btn-xs" onclick="toggleUserStatus('+u.id+')">'+(u.status?'停用':'启用')+'</button> '+
+        '<button class="btn-default btn-xs" onclick="resetUserPassword('+u.id+')">重置密码</button>'+
+      '</td></tr>').join('')||'<tr><td colspan="8" style="text-align:center;color:var(--c-text3);">暂无数据</td></tr>'+
+    '</tbody></table></div>';
+}
+
+function showUserForm(id) {
+  const u = id ? getUserById(id) : null;
+  const html =
+    '<div class="form-grid">'+
+      '<div class="form-item"><label>账号'+(id?'（不可修改）':'')+'</label><input id="uf-username" value="'+(u?escapeHtml(u.username):'')+'" '+(id?'readonly':'')+' placeholder="登录账号"></div>'+
+      '<div class="form-item"><label>姓名</label><input id="uf-name" value="'+(u?escapeHtml(u.name):'')+'" placeholder="真实姓名"></div>'+
+      '<div class="form-item"><label>手机号</label><input id="uf-phone" value="'+(u?escapeHtml(u.phone||'') : '')+'" placeholder="选填"></div>'+
+      '<div class="form-item"><label>初始密码</label><input type="password" id="uf-password" value="'+(u?'':'123456')+'" placeholder="默认123456"></div>'+
+    '</div>'+
+    '<div class="modal-actions">'+
+      '<button class="btn-default" onclick="closeModal()">取消</button>'+
+      '<button class="btn-primary" onclick="saveUser('+(id||0)+')">保存</button>'+
+    '</div>';
+  showModal(id?'编辑用户':'新增用户', html);
+}
+
+function saveUser(id) {
+  const username = document.getElementById('uf-username').value.trim();
+  const name = document.getElementById('uf-name').value.trim();
+  const phone = document.getElementById('uf-phone').value.trim();
+  const password = document.getElementById('uf-password').value.trim();
+  if (!username || !name) { toast('账号和姓名必填', 'error'); return; }
+  let users = DB.get('wt_users');
+  if (!id) {
+    if (users.find(u => u.username === username)) { toast('账号已存在', 'error'); return; }
+    const newId = Math.max(0, ...users.map(u=>u.id)) + 1;
+    users.push({ id:newId, username, password, name, phone, status:1, created_at: new Date().toISOString().slice(0,10) });
+  } else {
+    const u = users.find(u => u.id === id);
+    if (u) { u.name = name; u.phone = phone; if (password) u.password = password; }
+  }
+  DB.set('wt_users', users);
+  closeModal();
+  renderUserList();
+  toast(id?'用户已更新':'用户已创建', 'success');
+}
+
+function toggleUserStatus(id) {
+  const users = DB.get('wt_users');
+  const u = users.find(u => u.id === id);
+  if (!u) return;
+  u.status = u.status ? 0 : 1;
+  DB.set('wt_users', users);
+  renderUserList();
+  toast('账号已'+(u.status?'启用':'停用'), 'success');
+}
+
+function resetUserPassword(id) {
+  if (!confirm('确认重置该用户的密码为 123456 吗？')) return;
+  const users = DB.get('wt_users');
+  const u = users.find(u => u.id === id);
+  if (u) { u.password = '123456'; DB.set('wt_users', users); toast('密码已重置为 123456', 'success'); }
+}
+
+function showRoleAssign(userId) {
+  const ur = DB.get('wt_user_roles') || {};
+  const roles = DB.get('wt_roles') || [];
+  const myRoles = ur[userId] || [];
+  const user = getUserById(userId);
+  let html = '<p style="font-size:13px;color:var(--c-text2);margin-bottom:14px;">用户：'+escapeHtml(user?user.name:'')+'</p>';
+  html += roles.map(r => '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;">'+
+    '<input type="checkbox" value="'+r.id+'" '+(myRoles.includes(r.id)?'checked':'')+' onchange="toggleUserRole('+userId+','+r.id+',this.checked)">'+
+    r.name+' <span style="font-size:12px;color:var(--c-text3);">'+escapeHtml(r.remark)+'</span></label>').join('');
+  html += '<div class="modal-actions"><button class="btn-default" onclick="closeModal()">关闭</button></div>';
+  showModal('分配角色', html);
+}
+
+function toggleUserRole(userId, roleId, checked) {
+  let ur = DB.get('wt_user_roles') || {};
+  if (!ur[userId]) ur[userId] = [];
+  if (checked) { if (!ur[userId].includes(roleId)) ur[userId].push(roleId); }
+  else { ur[userId] = ur[userId].filter(r => r !== roleId); }
+  DB.set('wt_user_roles', ur);
+  renderUserList();
+}
+
+// ==================== 3. 角色管理 ====================
+function renderRoleList() {
+  const roles = DB.get('wt_roles') || [];
+  const ur = DB.get('wt_user_roles') || {};
+  const getUserCount = rid => Object.values(ur).filter(ids => ids.includes(rid)).length;
+  document.getElementById('page-system-role').innerHTML =
+    '<div class="toolbar">'+
+      '<div class="toolbar-left"><button class="btn-primary" onclick="showRoleForm()">新增角色</button></div>'+
+    '</div>'+
+    '<div class="card"><table>'+
+      '<thead><tr><th>ID</th><th>角色名称</th><th>描述</th><th>关联用户数</th><th>操作</th></tr></thead>'+
+      '<tbody>'+roles.map(r => '<tr><td>'+r.id+'</td><td>'+escapeHtml(r.name)+'</td><td>'+escapeHtml(r.remark)+'</td><td>'+getUserCount(r.id)+'</td><td>'+
+        '<button class="btn-primary btn-xs" onclick="showRoleForm('+r.id+')">编辑</button> '+
+        '<button class="btn-default btn-xs" onclick="showMenuConfig('+r.id+')">菜单权限</button> '+
+        '<button class="btn-danger btn-xs" onclick="deleteRole('+r.id+')">删除</button>'+
+      '</td></tr>').join('')||'<tr><td colspan="5" style="text-align:center;color:var(--c-text3);">暂无数据</td></tr>'+
+    '</tbody></table></div>';
+}
+
+function showRoleForm(id) {
+  const r = id ? (DB.get('wt_roles')||[]).find(r => r.id === id) : null;
+  const html =
+    '<div class="form-grid span2">'+
+      '<div class="form-item"><label>角色名称</label><input id="rf-name" value="'+(r?escapeHtml(r.name):'')+'" placeholder="例如：财务主管"></div>'+
+      '<div class="form-item"><label>描述</label><input id="rf-remark" value="'+(r?escapeHtml(r.remark):'')+'" placeholder="角色说明"></div>'+
+    '</div>'+
+    '<div class="modal-actions">'+
+      '<button class="btn-default" onclick="closeModal()">取消</button>'+
+      '<button class="btn-primary" onclick="saveRole('+(id||0)+')">保存</button>'+
+    '</div>';
+  showModal(id?'编辑角色':'新增角色', html);
+}
+
+function saveRole(id) {
+  const name = document.getElementById('rf-name').value.trim();
+  const remark = document.getElementById('rf-remark').value.trim();
+  if (!name) { toast('请输入角色名称', 'error'); return; }
+  let roles = DB.get('wt_roles');
+  if (!id) {
+    const newId = Math.max(0, ...roles.map(r=>r.id)) + 1;
+    roles.push({ id:newId, name, remark });
+  } else {
+    const r = roles.find(r => r.id === id);
+    if (r) { r.name = name; r.remark = remark; }
+  }
+  DB.set('wt_roles', roles);
+  closeModal();
+  renderRoleList();
+  toast(id?'角色已更新':'角色已创建', 'success');
+}
+
+function deleteRole(id) {
+  const ur = DB.get('wt_user_roles') || {};
+  const count = Object.values(ur).filter(ids => ids.includes(id)).length;
+  if (count > 0) { toast('该角色已分配给 '+count+' 个用户，无法删除', 'error'); return; }
+  if (!confirm('确认删除该角色？')) return;
+  let roles = DB.get('wt_roles');
+  DB.set('wt_roles', roles.filter(r => r.id !== id));
+  const rm = DB.get('wt_role_menus') || {};
+  delete rm[id];
+  DB.set('wt_role_menus', rm);
+  renderRoleList();
+  toast('角色已删除', 'success');
+}
+
+function showMenuConfig(roleId) {
+  const role = (DB.get('wt_roles')||[]).find(r => r.id === roleId);
+  const menus = DB.get('wt_menus') || [];
+  const rm = DB.get('wt_role_menus') || {};
+  const checked = rm[roleId] || [];
+  let html = '<p style="font-size:13px;color:var(--c-text2);margin-bottom:14px;">角色：'+escapeHtml(role?role.name:'')+'</p>';
+  html += menus.map(m => '<label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;">'+
+    '<input type="checkbox" value="'+m.id+'" '+(checked.includes(m.id)?'checked':'')+' onchange="toggleRoleMenu('+roleId+','+m.id+',this.checked)">'+
+    m.name+'</label>').join('');
+  html += '<div class="modal-actions"><button class="btn-default" onclick="closeModal()">关闭</button></div>';
+  showModal('菜单权限配置', html);
+}
+
+function toggleRoleMenu(roleId, menuId, checked) {
+  let rm = DB.get('wt_role_menus') || {};
+  if (!rm[roleId]) rm[roleId] = [];
+  if (checked) { if (!rm[roleId].includes(menuId)) rm[roleId].push(menuId); }
+  else { rm[roleId] = rm[roleId].filter(m => m !== menuId); }
+  DB.set('wt_role_menus', rm);
+}
+
+// ==================== 4. 项目管理 ====================
+function renderProjectList() {
+  const projects = DB.get('wt_projects') || [];
+  const pm = DB.get('wt_project_members') || {};
+  const statusMap = {0:'<span class="badge b-gray">已结束</span>', 1:'<span class="badge b-success">进行中</span>'};
+  const getMemberCount = pid => (pm[pid]||[]).length;
+  const getManagerName = mid => { const u = getUserById(mid); return u?u.name:''; };
+  document.getElementById('page-project').innerHTML =
+    '<div class="toolbar">'+
+      '<div class="toolbar-left"><button class="btn-primary" onclick="showProjectForm()">新增项目</button></div>'+
+    '</div>'+
+    '<div class="card"><table>'+
+      '<thead><tr><th>项目名称</th><th>项目经理</th><th>成员</th><th>预估工时</th><th>合同金额</th><th>状态</th><th>操作</th></tr></thead>'+
+      '<tbody>'+projects.map(p => '<tr><td>'+escapeHtml(p.name)+'</td><td>'+getManagerName(p.manager_id)+'</td><td>'+getMemberCount(p.id)+'</td><td>'+(p.est_hours||0)+'h</td><td>¥'+(p.contract_amount||0).toFixed(2)+'</td><td>'+statusMap[p.status]+'</td><td>'+
+        '<button class="btn-primary btn-xs" onclick="showProjectForm('+p.id+')">编辑</button> '+
+        '<button class="btn-default btn-xs" onclick="showMemberManage('+p.id+')">成员</button> '+
+        '<button class="'+(p.status?'btn-warning':'btn-default')+' btn-xs" onclick="toggleProjectStatus('+p.id+')">'+(p.status?'结束项目':'恢复')+'</button> '+
+        '<button class="btn-danger btn-xs" onclick="deleteProject('+p.id+')">删除</button>'+
+      '</td></tr>').join('')||'<tr><td colspan="7" style="text-align:center;color:var(--c-text3);">暂无数据</td></tr>'+
+    '</tbody></table></div>';
+}
+
+function showProjectForm(id) {
+  const p = id ? getProjectById(id) : null;
+  const users = DB.get('wt_users') || [];
+  const opts = users.map(u => '<option value="'+u.id+'" '+(p&&p.manager_id===u.id?'selected':'')+'>'+escapeHtml(u.name)+'</option>').join('');
+  const html =
+    '<div class="form-grid">'+
+      '<div class="form-item"><label>项目名称</label><input id="pf-name" value="'+(p?escapeHtml(p.name):'')+'" placeholder="项目名称"></div>'+
+      '<div class="form-item"><label>项目经理</label><select id="pf-manager">'+opts+'</select></div>'+
+      '<div class="form-item"><label>开始日期</label><input type="date" id="pf-start" value="'+(p?p.start_date:'')+'"></div>'+
+      '<div class="form-item"><label>结束日期</label><input type="date" id="pf-end" value="'+(p?p.end_date:'')+'"></div>'+
+      '<div class="form-item"><label>预估工时 (h)</label><input type="number" id="pf-hours" min="0" step="1" value="'+(p&&p.est_hours?p.est_hours:'')+'" placeholder="仅数字"></div>'+
+      '<div class="form-item"><label>合同金额 (元)</label><input type="number" id="pf-amount" min="0" step="0.01" value="'+(p&&p.contract_amount?p.contract_amount:'')+'" placeholder="支持两位小数"></div>'+
+      '<div class="form-item full"><label>业务单位<span class="hint">最多30字</span></label><input id="pf-unit" maxlength="30" value="'+(p?escapeHtml(p.biz_unit||''):'')+'" placeholder="业务单位"></div>'+
+    '</div>'+
+    '<div class="modal-actions">'+
+      '<button class="btn-default" onclick="closeModal()">取消</button>'+
+      '<button class="btn-primary" onclick="saveProject('+(id||0)+')">保存</button>'+
+    '</div>';
+  showModal(id?'编辑项目':'新增项目', html);
+}
+
+function saveProject(id) {
+  const name = document.getElementById('pf-name').value.trim();
+  const manager_id = parseInt(document.getElementById('pf-manager').value);
+  const start_date = document.getElementById('pf-start').value;
+  const end_date = document.getElementById('pf-end').value;
+  const est_hours = parseFloat(document.getElementById('pf-hours').value) || 0;
+  const contract_amount = parseFloat(document.getElementById('pf-amount').value) || 0;
+  const biz_unit = document.getElementById('pf-unit').value.trim();
+  if (!name) { toast('请输入项目名称', 'error'); return; }
+  if (biz_unit.length > 30) { toast('业务单位不能超过30个字', 'error'); return; }
+  let projects = DB.get('wt_projects');
+  if (!id) {
+    const newId = Math.max(0, ...projects.map(p=>p.id)) + 1;
+    projects.push({ id:newId, name, manager_id, status:1, start_date, end_date, est_hours, contract_amount, biz_unit, created_at: new Date().toISOString().slice(0,10) });
+  } else {
+    const p = projects.find(p => p.id === id);
+    if (p) { p.name = name; p.manager_id = manager_id; p.start_date = start_date; p.end_date = end_date;
+      p.est_hours = est_hours; p.contract_amount = contract_amount; p.biz_unit = biz_unit; }
+  }
+  DB.set('wt_projects', projects);
+  closeModal();
+  renderProjectList();
+  toast(id?'项目已更新':'项目已创建', 'success');
+}
+
+function toggleProjectStatus(id) {
+  const projects = DB.get('wt_projects');
+  const p = projects.find(p => p.id === id);
+  if (!p) return;
+  p.status = p.status ? 0 : 1;
+  DB.set('wt_projects', projects);
+  renderProjectList();
+  toast('项目已'+(p.status?'恢复':'结束'), 'success');
+}
+
+function deleteProject(id) {
+  const timesheets = DB.get('wt_timesheets') || [];
+  if (timesheets.some(t => t.project_id === id)) { toast('该项目已有工时记录，无法删除。可将其标记为"已结束"', 'error'); return; }
+  if (!confirm('确认删除该项目？')) return;
+  let projects = DB.get('wt_projects');
+  DB.set('wt_projects', projects.filter(p => p.id !== id));
+  renderProjectList();
+  toast('项目已删除', 'success');
+}
+
+function showMemberManage(projectId) {
+  const project = getProjectById(projectId);
+  const pm = DB.get('wt_project_members') || {};
+  const members = pm[projectId] || [];
+  const users = DB.get('wt_users') || [];
+  let html = '<p style="font-size:13px;color:var(--c-text2);margin-bottom:14px;">项目：'+escapeHtml(project?project.name:'')+'</p>';
+  html += '<div style="margin-bottom:16px;"><select id="mm-select" style="width:auto;min-width:200px;">'+
+    users.filter(u => !members.includes(u.id)).map(u => '<option value="'+u.id+'">'+escapeHtml(u.name)+' ('+escapeHtml(u.username)+')</option>').join('')+
+    '</select> <button class="btn-primary btn-sm" onclick="addProjectMember('+projectId+')">添加成员</button></div>';
+  html += '<div class="card"><table><thead><tr><th>姓名</th><th>账号</th><th>操作</th></tr></thead><tbody>'+
+    members.map(uid => { const u = getUserById(uid); return u?'<tr><td>'+escapeHtml(u.name)+'</td><td>'+escapeHtml(u.username)+'</td><td><button class="btn-danger btn-xs" onclick="removeProjectMember('+projectId+','+uid+')">移除</button></td></tr>':''; }).join('')+
+    '</tbody></table></div>';
+  html += '<div class="modal-actions"><button class="btn-default" onclick="closeModal()">关闭</button></div>';
+  showModal('项目成员管理', html);
+}
+
+function addProjectMember(projectId) {
+  const uid = parseInt(document.getElementById('mm-select').value);
+  let pm = DB.get('wt_project_members') || {};
+  if (!pm[projectId]) pm[projectId] = [];
+  if (!pm[projectId].includes(uid)) { pm[projectId].push(uid); DB.set('wt_project_members', pm); }
+  closeModal();
+  showMemberManage(projectId);
+  renderProjectList();
+  toast('成员已添加', 'success');
+}
+
+function removeProjectMember(projectId, uid) {
+  let pm = DB.get('wt_project_members') || {};
+  if (pm[projectId]) { pm[projectId] = pm[projectId].filter(id => id !== uid); DB.set('wt_project_members', pm); }
+  closeModal();
+  showMemberManage(projectId);
+  renderProjectList();
+  toast('成员已移除', 'success');
+}
+
+// ==================== 5. 工时登记 ====================
+function tsIsTsPage() {
+  return document.getElementById('page-timesheet-create').classList.contains('active');
+}
+function addTsRow() {
+  if (!tsIsTsPage()) return;
+  var myProjects = getMyProjects();
+  var r = document.createElement('div');
+  r.className = 'ts-row';
+  r.innerHTML = '<select class="ts-proj"><option value="">选择项目</option>'+
+    myProjects.map(function(p){ return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>'; }).join('')+
+    '</select><input type="number" class="ts-hours" min="0" max="12" step="0.5" placeholder="工时" oninput="tsCalc()">'+
+    '<input type="text" class="ts-remark" placeholder="工作内容">'+
+    '<button class="btn-danger btn-sm" onclick="tsDel(this)">X</button>';
+  document.getElementById('ts-rows').appendChild(r);
+}
+function tsDel(btn) { btn.parentElement.remove(); tsCalc(); }
+function tsCalc() {
+  if (!tsIsTsPage()) return;
+  var total = 0;
+  document.querySelectorAll('#page-timesheet-create .ts-hours').forEach(function(e) { total += parseFloat(e.value) || 0; });
+  total = Math.round(total*10)/10;
+  var pct = Math.min(total/12*100, 100);
+  var bar = document.getElementById('ts-bar');
+  var text = document.getElementById('ts-total');
+  var warn = document.getElementById('ts-warn');
+  var btn = document.getElementById('ts-submit');
+  if (!bar || !text) return;
+  bar.style.width = pct+'%';
+  text.textContent = total.toFixed(1)+'h / 12h';
+  if (total > 12) {
+    bar.className = 'bar-fill over';
+    text.className = 'total-text over';
+    warn.className = 'warn-msg show';
+    if (btn) btn.disabled = true;
+  } else {
+    bar.className = 'bar-fill ok';
+    text.className = 'total-text';
+    warn.className = 'warn-msg';
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderTimesheetCreate(date) {
+  date = date || new Date().toISOString().slice(0,10);
+  var timesheets = DB.get('wt_timesheets') || [];
+  var myTs = timesheets.filter(function(t) { return t.user_id === currentUser.id && t.work_date === date; });
+  var myProjects = getMyProjects();
+  document.getElementById('page-timesheet-create').innerHTML =
+    '<div class="card" style="padding:24px;">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">'+
+        '<h3 style="font-size:16px;">工时登记</h3>'+
+        '<div class="form-inline"><span style="font-size:13px;color:var(--c-text2);">日期</span><input type="date" id="ts-date" value="'+date+'" onchange="renderTimesheetCreate(this.value)" style="width:150px;"></div>'+
+      '</div>'+
+      '<div id="ts-rows">'+buildTsRows(myTs, myProjects)+'</div>'+
+      '<button class="btn-default" onclick="addTsRow()" style="width:100%;margin-top:10px;border-style:dashed;">+ 添加项目</button>'+
+      buildTsSummary()+
+      '<button id="ts-submit" class="btn-primary" style="width:100%;margin-top:12px;padding:10px;" onclick="submitTimesheet()">提交登记</button>'+
+    '</div>';
+  tsCalc();
+}
+
+function buildTsRows(myTs, myProjects) {
+  if (myTs.length === 0) {
+    return '<div class="ts-row"><select class="ts-proj"><option value="">选择项目</option>'+
+      myProjects.map(function(p) { return '<option value="'+p.id+'">'+escapeHtml(p.name)+'</option>'; }).join('')+
+      '</select><input type="number" class="ts-hours" min="0" max="12" step="0.5" placeholder="工时" oninput="tsCalc()">'+
+      '<input type="text" class="ts-remark" placeholder="工作内容">'+
+      '<button class="btn-danger btn-sm" onclick="tsDel(this)">X</button></div>';
+  }
+  return myTs.map(function(t) {
+    var p = getProjectById(t.project_id);
+    return '<div class="ts-row" data-tsid="'+t.id+'"><select class="ts-proj"><option value="">选择项目</option>'+
+      myProjects.map(function(pp) { return '<option value="'+pp.id+'" '+(pp.id===t.project_id?'selected':'')+'>'+escapeHtml(pp.name)+'</option>'; }).join('')+
+      '</select><input type="number" class="ts-hours" min="0" max="12" step="0.5" value="'+t.hours+'" oninput="tsCalc()">'+
+      '<input type="text" class="ts-remark" value="'+escapeHtml(t.remark||'')+'" placeholder="工作内容">'+
+      '<button class="btn-danger btn-sm" onclick="tsDel(this)">X</button></div>';
+  }).join('');
+}
+
+function buildTsSummary() {
+  return '<div class="ts-summary"><div style="display:flex;justify-content:space-between;align-items:center;">'+
+    '<span style="font-size:13px;color:var(--c-text2);">当日总工时</span>'+
+    '<span class="total-text" id="ts-total">0.0h / 12h</span></div>'+
+    '<div class="bar-bg"><div class="bar-fill ok" id="ts-bar" style="width:0%;"></div></div>'+
+    '<div class="warn-msg" id="ts-warn">总工时不能超过 12 小时，请调整</div></div>';
+}
+
+function submitTimesheet() {
+  const date = document.getElementById('ts-date').value;
+  const rows = document.querySelectorAll('#ts-rows .ts-row');
+  let items = [];
+  let total = 0;
+  rows.forEach(row => {
+    const projId = parseInt(row.querySelector('.ts-proj').value);
+    const hours = parseFloat(row.querySelector('.ts-hours').value) || 0;
+    const remark = row.querySelector('.ts-remark').value.trim();
+    if (projId && hours > 0) { items.push({ project_id: projId, hours, remark }); total += hours; }
+  });
+  if (items.length === 0) { toast('请至少选择一个项目并填写工时', 'error'); return; }
+  if (total > 12) { toast('当日总工时超过12小时，请调整', 'error'); return; }
+  let timesheets = DB.get('wt_timesheets') || [];
+  timesheets = timesheets.filter(t => !(t.user_id === currentUser.id && t.work_date === date));
+  items.forEach(item => {
+    const newId = timesheets.length > 0 ? Math.max(...timesheets.map(t=>t.id)) + 1 : 1;
+    timesheets.push({
+      id: newId, user_id: currentUser.id, project_id: item.project_id,
+      work_date: date, hours: item.hours, remark: item.remark,
+      created_at: new Date().toISOString().slice(0,10)
+    });
+  });
+  DB.set('wt_timesheets', timesheets);
+  toast('工时登记成功', 'success');
+  renderTimesheetCreate(date);
+}
+
+// ==================== 6. 我的工时 ====================
+function renderTimesheetMy() {
+  let timesheets = DB.get('wt_timesheets') || [];
+  timesheets = timesheets.filter(t => t.user_id === currentUser.id).sort((a,b) => b.work_date.localeCompare(a.work_date) || b.id - a.id);
+  // 按日期分组
+  const groups = [];
+  let cur = null;
+  timesheets.forEach(t => {
+    if (!cur || cur.date !== t.work_date) {
+      cur = { date: t.work_date, items: [], totalHours: 0 };
+      groups.push(cur);
+    }
+    cur.items.push(t);
+    cur.totalHours += t.hours;
+  });
+  // 渲染分组表格
+  let rows = '';
+  groups.forEach(g => {
+    const n = g.items.length;
+    g.items.forEach((t, i) => {
+      const p = getProjectById(t.project_id);
+      rows += '<tr>';
+      if (i === 0) {
+        rows += '<td rowspan="'+n+'" style="vertical-align:middle;font-weight:500;">'+g.date+'<br><span style="font-size:12px;color:var(--c-text3);">合计 '+g.totalHours.toFixed(1)+'h</span></td>';
+      }
+      rows += '<td>'+escapeHtml(p?p.name:'未知')+'</td><td>'+t.hours+'h</td><td>'+escapeHtml(t.remark||'')+'</td>';
+      if (i === 0) {
+        rows += '<td rowspan="'+n+'" style="vertical-align:middle;">'+
+          '<button class="btn-primary btn-xs" onclick="editTimesheetDate(\''+g.date+'\')">编辑</button> '+
+          '<button class="btn-danger btn-xs" onclick="deleteTimesheet('+t.id+')">删除</button></td>';
+      }
+      rows += '</tr>';
+    });
+  });
+  document.getElementById('page-timesheet-my').innerHTML =
+    '<div class="card"><table>'+
+      '<thead><tr><th style="width:130px;">日期</th><th>项目</th><th style="width:80px;">工时(h)</th><th>备注</th><th style="width:100px;">操作</th></tr></thead>'+
+      '<tbody>'+(rows || '<tr><td colspan="5" style="text-align:center;color:var(--c-text3);padding:24px;">暂无工时记录</td></tr>')+
+    '</tbody></table></div>';
+}
+
+function deleteTimesheet(id) {
+  if (!confirm('确认删除该工时记录？')) return;
+  let ts = DB.get('wt_timesheets');
+  DB.set('wt_timesheets', ts.filter(t => t.id !== id));
+  renderTimesheetMy();
+  toast('已删除', 'success');
+}
+
+function editTimesheetDate(date) {
+  window._editDate = date;
+  navigate('timesheet-create');
+}
+
+function editTimesheet(id) {
+  var ts = (DB.get('wt_timesheets')||[]).find(function(t) { return t.id === id; });
+  if (!ts) return;
+  window._editDate = ts.work_date;
+  navigate('timesheet-create');
+}
+
+// ==================== 7. 工时统计 ====================
+function renderTimesheetStats() {
+  const timesheets = DB.get('wt_timesheets') || [];
+  const isAdmin = (DB.get('wt_user_roles')||{})[currentUser.id]?.includes(1);
+  const isPM = (DB.get('wt_user_roles')||{})[currentUser.id]?.includes(2);
+  let myTs = timesheets;
+  if (isPM && !isAdmin) {
+    const pmData = DB.get('wt_project_members') || {};
+    const projects = DB.get('wt_projects') || [];
+    const myManagedProjects = projects.filter(p => p.manager_id === currentUser.id).map(p => p.id);
+    myTs = timesheets.filter(t => myManagedProjects.includes(t.project_id));
+  }
+  // 按项目汇总
+  const byProject = {};
+  myTs.forEach(t => {
+    if (!byProject[t.project_id]) byProject[t.project_id] = 0;
+    byProject[t.project_id] += t.hours;
+  });
+  const projects = DB.get('wt_projects') || [];
+  const rows = Object.entries(byProject).map(([pid, hours]) => {
+    const p = projects.find(pp => pp.id === parseInt(pid));
+    return { name: p?p.name:'未知项目', hours: Math.round(hours*10)/10, count: myTs.filter(t=>t.project_id===parseInt(pid)).length };
+  }).sort((a,b) => b.hours - a.hours);
+  const totalHours = Math.round(myTs.reduce((s,t)=>s+t.hours,0)*10)/10;
+  document.getElementById('page-timesheet-stats').innerHTML =
+    '<div class="stat-cards">'+
+      '<div class="card"><div class="num">'+totalHours.toFixed(1)+'h</div><div class="label">总工时</div></div>'+
+      '<div class="card"><div class="num">'+rows.length+'</div><div class="label">涉及项目</div></div>'+
+      '<div class="card"><div class="num">'+myTs.length+'</div><div class="label">工时记录数</div></div>'+
+    '</div>'+
+    '<div class="card"><h3 style="font-size:15px;margin-bottom:12px;padding:16px 16px 0;">项目工时分布</h3><table>'+
+      '<thead><tr><th>项目名称</th><th>工时(h)</th><th>记录数</th><th>占比</th></tr></thead>'+
+      '<tbody>'+rows.map(r => '<tr><td>'+escapeHtml(r.name)+'</td><td><strong>'+r.hours.toFixed(1)+'</strong></td><td>'+r.count+'</td><td>'+(totalHours>0?(r.hours/totalHours*100).toFixed(1)+'%':'0%')+'</td></tr>').join('')+
+      (!rows.length?'<tr><td colspan="4" style="text-align:center;color:var(--c-text3);">暂无数据</td></tr>':'')+
+    '</tbody></table></div>';
+}
+</script>
+
+</body>
+</html>
