@@ -24,6 +24,12 @@
 - 权限模型：RBAC（Role-Based Access Control）
 - 无需后端部署，双击 `index.html` 即可使用
 
+### 1.4 登录页
+
+系统提供统一的登录入口，用户输入账号、密码后进入系统。登录页同时展示预置测试账号，方便首次体验。
+
+<img width="1440" alt="登录页" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/01-login.png" />
+
 ---
 
 ## 二、功能模块
@@ -42,6 +48,10 @@
 **业务规则：**
 - 登录名不可重复
 - 停用账号登录时提示"账号已停用"
+
+**界面示意：**
+
+<img width="1440" alt="用户管理" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/07-user-mgmt.png" />
 
 ### 2.2 角色管理
 
@@ -73,6 +83,10 @@
 | 项目经理 | 首页、项目管理、工时登记、我的工时、工时统计 | 可管理项目、查看统计 |
 | 普通员工 | 首页、工时登记、我的工时 | 仅登记和查看个人工时 |
 
+**界面示意：**
+
+<img width="1440" alt="角色管理" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/08-role-mgmt.png" />
+
 ### 2.3 项目管理
 
 | 功能点 | 说明 |
@@ -100,7 +114,14 @@
 - 员工登记工时时，只显示「自己参与的 + 未结束的」项目
 - 项目经理可查看所负责项目的工时统计
 - 管理员可查看全部项目的工时统计
-<img width="2784" height="734" alt="image" src="https://github.com/user-attachments/assets/f2ffc96b-b29a-40d5-8e1a-320085b94e29" />
+
+**项目列表界面：**
+
+<img width="1440" alt="项目管理" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/03-project.png" />
+
+**新增项目弹窗：**
+
+<img width="1440" alt="新增项目" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/09-project-add.png" />
 
 
 ### 2.4 工时管理
@@ -121,6 +142,10 @@
 - 同一日期同一项目不可重复登记（编辑即覆盖）
 - 步长 0.5h（0.5, 1, 1.5, ..., 11.5, 12）
 
+**界面示意：**
+
+<img width="1440" alt="工时登记" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/04-timesheet-create.png" />
+
 #### 2.4.2 我的工时
 
 | 功能点 | 说明 |
@@ -129,6 +154,10 @@
 | 编辑 | 点击跳转到该日期工时登记页，预填已有数据 |
 | 删除 | 按日期整组删除当天全部工时记录 |
 | 排序 | 按日期倒序，最新在前 |
+
+**界面示意：**
+
+<img width="1440" alt="我的工时" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/05-timesheet-my.png" />
 
 #### 2.4.3 工时统计
 
@@ -140,6 +169,10 @@
 **统计指标：**
 - 总工时汇总
 - 按项目分组统计（项目名称、参与人数、总工时、记录数）
+
+**界面示意：**
+
+<img width="1440" alt="工时统计" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/06-stats.png" />
 
 ---
 
@@ -225,6 +258,10 @@ wt_timesheets    — 工时表（id, user_id, project_id, work_date, hours, rema
 - **顶栏**：深色（#1e1b4b），一级菜单 Tab（业务功能 / 系统管理），右上角用户信息
 - **左侧菜单栏**：深色背景，与顶栏一致，展示当前一级菜单下的子菜单项
 - **内容区**：白色背景，全宽自适应
+
+**首页效果：**
+
+<img width="1440" alt="首页" src="https://raw.githubusercontent.com/zhangxiaoli1759-tech/timesheet-system/main/screenshots/02-dashboard.png" />
 
 ### 5.2 交互说明
 
