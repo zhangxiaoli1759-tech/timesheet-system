@@ -619,9 +619,6 @@ function renderProjectList() {
   const statusOpts = '<option value="">全部状态</option>' +
     Object.keys(PROJECT_STATUS).map(k => '<option value="'+k+'">'+PROJECT_STATUS[k]+'</option>').join('');
   document.getElementById('page-project').innerHTML =
-    '<div class="toolbar">'+
-      '<div class="toolbar-left"><button class="btn-primary" onclick="showProjectForm()">新增项目</button></div>'+
-    '</div>'+
     '<div class="filter-bar">'+
       '<div class="filter-item"><label>项目名称</label><input id="pf-kw" placeholder="输入名称模糊查询" oninput="applyProjectFilter()"></div>'+
       '<div class="filter-item"><label>状态</label><select id="pf-status" onchange="applyProjectFilter()">'+statusOpts+'</select></div>'+
@@ -633,6 +630,7 @@ function renderProjectList() {
         '</div>'+
       '</div>'+
       '<button class="btn-default btn-sm" onclick="resetProjectFilter()">重置</button>'+
+      '<button class="btn-primary" style="margin-left:auto" onclick="showProjectForm()">新增项目</button>'+
     '</div>'+
     '<div class="card"><table>'+
       '<thead><tr><th>项目名称</th><th>项目经理</th><th>成员</th><th>预估工时</th><th>合同金额</th><th>状态</th><th>操作</th></tr></thead>'+
