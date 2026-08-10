@@ -107,6 +107,14 @@ tr:hover { background:#fafafa; }
 
 .toolbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:8px; }
 .toolbar-left { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.filter-bar { display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap; margin-bottom:16px; padding:14px 16px; background:var(--c-white); border:1px solid var(--c-border); border-radius:var(--radius); }
+.filter-item { display:flex; flex-direction:column; gap:4px; }
+.filter-item label { font-size:12px; color:var(--c-text2); }
+.filter-item input, .filter-item select { min-width:160px; }
+.combo { position:relative; }
+.combo-list { position:absolute; top:100%; left:0; right:0; z-index:50; margin-top:2px; background:var(--c-white); border:1px solid var(--c-border); border-radius:8px; max-height:220px; overflow:auto; display:none; box-shadow:0 6px 20px rgba(0,0,0,0.12); }
+.combo-item { padding:8px 12px; font-size:13px; cursor:pointer; }
+.combo-item:hover { background:var(--c-bg); }
 .stat-cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-bottom:20px; }
 .stat-cards .card { padding:16px 20px; }
 .stat-cards .num { font-size:28px; font-weight:700; color:var(--c-primary); }
@@ -233,8 +241,8 @@ function initData() {
     DB.set('wt_projects', [
       { id:1, name:'电商平台重构', manager_id:2, status:1, start_date:'2026-03-01', end_date:'2026-09-30', created_at:'2026-03-01' },
       { id:2, name:'数据中台建设', manager_id:2, status:1, start_date:'2026-04-15', end_date:'2026-10-31', created_at:'2026-04-15' },
-      { id:3, name:'移动端App v2.0', manager_id:2, status:1, start_date:'2026-05-01', end_date:'2026-11-30', created_at:'2026-05-01' },
-      { id:4, name:'内部运维支持', manager_id:1, status:1, start_date:'2026-01-01', end_date:'2026-12-31', created_at:'2026-01-01' },
+      { id:3, name:'移动端App v2.0', manager_id:2, status:2, start_date:'2026-05-01', end_date:'2026-11-30', created_at:'2026-05-01' },
+      { id:4, name:'内部运维支持', manager_id:1, status:0, start_date:'2026-01-01', end_date:'2026-12-31', created_at:'2026-01-01' },
     ]);
     DB.set('wt_project_members', { 1:[1,2,3], 2:[2,3], 3:[2], 4:[1,2,3] });
     DB.set('wt_timesheets', []);
@@ -604,25 +612,89 @@ function toggleRoleMenu(roleId, menuId, checked) {
 }
 
 // ==================== 4. 项目管理 ====================
+const PROJECT_STATUS = {0:'已结束', 1:'进行中', 2:'未开始'};
+
 function renderProjectList() {
-  const projects = DB.get('wt_projects') || [];
-  const pm = DB.get('wt_project_members') || {};
-  const statusMap = {0:'<span class="badge b-gray">已结束</span>', 1:'<span class="badge b-success">进行中</span>'};
-  const getMemberCount = pid => (pm[pid]||[]).length;
-  const getManagerName = mid => { const u = getUserById(mid); return u?u.name:''; };
+  const statusOpts = '<option value="">全部状态</option>' +
+    Object.keys(PROJECT_STATUS).map(k => '<option value="'+k+'">'+PROJECT_STATUS[k]+'</option>').join('');
   document.getElementById('page-project').innerHTML =
     '<div class="toolbar">'+
       '<div class="toolbar-left"><button class="btn-primary" onclick="showProjectForm()">新增项目</button></div>'+
     '</div>'+
+    '<div class="filter-bar">'+
+      '<div class="filter-item"><label>项目名称</label><input id="pf-kw" placeholder="输入名称模糊查询" oninput="applyProjectFilter()"></div>'+
+      '<div class="filter-item"><label>状态</label><select id="pf-status" onchange="applyProjectFilter()">'+statusOpts+'</select></div>'+
+      '<div class="filter-item"><label>项目经理</label>'+
+        '<div class="combo" id="pm-combo">'+
+          '<input type="text" id="pf-manager-name" placeholder="搜索并选择人员" autocomplete="off" oninput="filterManagerCombo()" onfocus="filterManagerCombo()">'+
+          '<div class="combo-list" id="pm-combo-list"></div>'+
+          '<input type="hidden" id="pf-manager-id" value="">'+
+        '</div>'+
+      '</div>'+
+      '<button class="btn-default btn-sm" onclick="resetProjectFilter()">重置</button>'+
+    '</div>'+
     '<div class="card"><table>'+
       '<thead><tr><th>项目名称</th><th>项目经理</th><th>成员</th><th>预估工时</th><th>合同金额</th><th>状态</th><th>操作</th></tr></thead>'+
-      '<tbody>'+projects.map(p => '<tr><td>'+escapeHtml(p.name)+'</td><td>'+getManagerName(p.manager_id)+'</td><td>'+getMemberCount(p.id)+'</td><td>'+(p.est_hours||0)+'h</td><td>¥'+(p.contract_amount||0).toFixed(2)+'</td><td>'+statusMap[p.status]+'</td><td>'+
+      '<tbody id="project-tbody"></tbody>'+
+    '</table></div>';
+  const comboInput = document.getElementById('pf-manager-name');
+  const comboList = document.getElementById('pm-combo-list');
+  comboInput.addEventListener('blur', () => setTimeout(() => comboList.style.display='none', 150));
+  applyProjectFilter();
+}
+
+function filterManagerCombo() {
+  const input = document.getElementById('pf-manager-name');
+  const list = document.getElementById('pm-combo-list');
+  const users = DB.get('wt_users') || [];
+  const kw = input.value.trim();
+  const matched = users.filter(u => u.name.indexOf(kw) >= 0);
+  if (!matched.length) { list.style.display='none'; return; }
+  list.innerHTML = matched.map(u => '<div class="combo-item" data-id="'+u.id+'">'+escapeHtml(u.name)+'</div>').join('');
+  list.style.display = 'block';
+  list.querySelectorAll('.combo-item').forEach(it => {
+    it.onclick = () => {
+      input.value = it.textContent;
+      document.getElementById('pf-manager-id').value = it.dataset.id;
+      list.style.display = 'none';
+      applyProjectFilter();
+    };
+  });
+}
+
+function resetProjectFilter() {
+  document.getElementById('pf-kw').value = '';
+  document.getElementById('pf-status').value = '';
+  document.getElementById('pf-manager-name').value = '';
+  document.getElementById('pf-manager-id').value = '';
+  applyProjectFilter();
+}
+
+function applyProjectFilter() {
+  const projects = DB.get('wt_projects') || [];
+  const pm = DB.get('wt_project_members') || {};
+  const statusMap = {0:'<span class="badge b-gray">已结束</span>', 1:'<span class="badge b-success">进行中</span>', 2:'<span class="badge b-warning">未开始</span>'};
+  const getMemberCount = pid => (pm[pid]||[]).length;
+  const getManagerName = mid => { const u = getUserById(mid); return u?u.name:''; };
+  const kw = (document.getElementById('pf-kw') ? document.getElementById('pf-kw').value : '').trim();
+  const status = document.getElementById('pf-status') ? document.getElementById('pf-status').value : '';
+  const mid = document.getElementById('pf-manager-id') ? document.getElementById('pf-manager-id').value : '';
+  const list = projects.filter(p => {
+    if (kw && p.name.indexOf(kw) < 0) return false;
+    if (status !== '' && String(p.status) !== status) return false;
+    if (mid && String(p.manager_id) !== mid) return false;
+    return true;
+  });
+  const tbody = document.getElementById('project-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = list.length
+    ? list.map(p => '<tr><td>'+escapeHtml(p.name)+'</td><td>'+getManagerName(p.manager_id)+'</td><td>'+getMemberCount(p.id)+'</td><td>'+(p.est_hours||0)+'h</td><td>¥'+(p.contract_amount||0).toFixed(2)+'</td><td>'+statusMap[p.status]+'</td><td>'+
         '<button class="btn-primary btn-xs" onclick="showProjectForm('+p.id+')">编辑</button> '+
         '<button class="btn-default btn-xs" onclick="showMemberManage('+p.id+')">成员</button> '+
         '<button class="'+(p.status?'btn-warning':'btn-default')+' btn-xs" onclick="toggleProjectStatus('+p.id+')">'+(p.status?'结束项目':'恢复')+'</button> '+
         '<button class="btn-danger btn-xs" onclick="deleteProject('+p.id+')">删除</button>'+
-      '</td></tr>').join('')||'<tr><td colspan="7" style="text-align:center;color:var(--c-text3);">暂无数据</td></tr>'+
-    '</tbody></table></div>';
+      '</td></tr>').join('')
+    : '<tr><td colspan="7" style="text-align:center;color:var(--c-text3);">暂无符合条件的项目</td></tr>';
 }
 
 function showProjectForm(id) {
@@ -633,6 +705,9 @@ function showProjectForm(id) {
     '<div class="form-grid">'+
       '<div class="form-item"><label>项目名称</label><input id="pf-name" value="'+(p?escapeHtml(p.name):'')+'" placeholder="项目名称"></div>'+
       '<div class="form-item"><label>项目经理</label><select id="pf-manager">'+opts+'</select></div>'+
+      '<div class="form-item"><label>状态</label><select id="pf-status-edit">'+
+        Object.keys(PROJECT_STATUS).map(k => '<option value="'+k+'" '+((!p&&k==='1')||(p&&String(p.status)===k)?'selected':'')+'>'+PROJECT_STATUS[k]+'</option>').join('')+
+      '</select></div>'+
       '<div class="form-item"><label>开始日期</label><input type="date" id="pf-start" value="'+(p?p.start_date:'')+'"></div>'+
       '<div class="form-item"><label>结束日期</label><input type="date" id="pf-end" value="'+(p?p.end_date:'')+'"></div>'+
       '<div class="form-item"><label>预估工时 (h)</label><input type="number" id="pf-hours" min="0" step="1" value="'+(p&&p.est_hours?p.est_hours:'')+'" placeholder="仅数字"></div>'+
@@ -649,6 +724,7 @@ function showProjectForm(id) {
 function saveProject(id) {
   const name = document.getElementById('pf-name').value.trim();
   const manager_id = parseInt(document.getElementById('pf-manager').value);
+  const status = parseInt(document.getElementById('pf-status-edit').value);
   const start_date = document.getElementById('pf-start').value;
   const end_date = document.getElementById('pf-end').value;
   const est_hours = parseFloat(document.getElementById('pf-hours').value) || 0;
@@ -659,10 +735,10 @@ function saveProject(id) {
   let projects = DB.get('wt_projects');
   if (!id) {
     const newId = Math.max(0, ...projects.map(p=>p.id)) + 1;
-    projects.push({ id:newId, name, manager_id, status:1, start_date, end_date, est_hours, contract_amount, biz_unit, created_at: new Date().toISOString().slice(0,10) });
+    projects.push({ id:newId, name, manager_id, status, start_date, end_date, est_hours, contract_amount, biz_unit, created_at: new Date().toISOString().slice(0,10) });
   } else {
     const p = projects.find(p => p.id === id);
-    if (p) { p.name = name; p.manager_id = manager_id; p.start_date = start_date; p.end_date = end_date;
+    if (p) { p.name = name; p.manager_id = manager_id; p.status = status; p.start_date = start_date; p.end_date = end_date;
       p.est_hours = est_hours; p.contract_amount = contract_amount; p.biz_unit = biz_unit; }
   }
   DB.set('wt_projects', projects);
